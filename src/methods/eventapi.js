@@ -1,17 +1,9 @@
 
-<<<<<<< HEAD
 const wait = async(ms) => {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
 };
-=======
-// const wait = async(ms) => {
-//     return new Promise((resolve) => {
-//         setTimeout(resolve, ms);
-//     });
-// };
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
 
 class EventAPI {
     constructor(set_id, user_id, onDelete, onAdd, onRename) {
@@ -23,11 +15,8 @@ class EventAPI {
         this.onRename = onRename
 
         this.IsDisconnected = true
-<<<<<<< HEAD
 
         this.IsReconnecting = false
-=======
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
     }
 
     Connect() {
@@ -35,7 +24,6 @@ class EventAPI {
 
         this.ws = new WebSocket("wss://events.7tv.io/v3");
         this.ws.onmessage = (e) => this.onMessage(e)
-<<<<<<< HEAD
         this.ws.onclose = () => this.onClose()
         this.ws.onopen = () => this.onOpen()
     }
@@ -68,35 +56,6 @@ class EventAPI {
             attemps--
         }
     }
-=======
-        // this.ws.onerror = () => this.onError()
-        // this.ws.onclose = () => this.onClose()
-        // this.IsDisconnected = false
-    }
-
-    // async onError() {
-    //     console.log("Connection error occured")
-    // }
-
-    // async onClose() {
-    //     console.log("EVENT API disconnected")
-    //     this.IsDisconnected = true
-
-    //     let attemps = 3
-        
-    //     while (this.IsDisconnected) {
-    //         this.Connect()
-    //         await wait(2500)
-
-    //         if (attemps == 0) {
-    //             console.log("Event api closed")
-    //             return
-    //         }
-
-    //         attemps--
-    //     }
-    // }
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
 
     subscribeToEvent(event, cond) {
         let message = {
@@ -113,14 +72,11 @@ class EventAPI {
         let json = JSON.parse(e.data)
         // console.log(json)
         switch (json.op) {
-<<<<<<< HEAD
             case 4000, 4001, 4002, 4003, 4004, 4005, 4006, 4007, 4008, 4009, 4010, 4011: {
                 this.ws.close()
                 this.Connect()
                 break
             }
-=======
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
             case 1: {
                 this.subscribeToEvent("emote_set.*", {"object_id": this.set_id})
                 //other

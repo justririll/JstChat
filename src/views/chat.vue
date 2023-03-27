@@ -67,7 +67,6 @@
         }
         this.Emotes.push({"Name": e.value.name, "ID": e.value.id, "Type": "7TV"})
       },
-<<<<<<< HEAD
       async get7tvchannel() {
         let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
         if (stv.length > 0) {
@@ -91,40 +90,15 @@
           console.log("loaded sub badges")
         }
       },
-=======
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
       async onUserID(id) {
           console.log(this.channelID)
           if (this.channelID == null) {
             this.channelID = id
-<<<<<<< HEAD
 
             // a
             await this.getbttvchannel()
             await this.get7tvchannel()
             await this.getsubscriberbadges()
-=======
-            let subs = await apis.RetryOnError(apis.getSubscriberBadges, [this.channelID], 3)
-            if (subs) {
-              this.GlobalBadges["subscriber"] = subs
-              console.log("loaded sub badges")
-            }
-
-            this.Emotes = this.Emotes.concat(await await apis.RetryOnError(apis.getBttvEmotes, [this.channelID], 3))
-
-            let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
-            if (stv.length > 0) {
-              console.log(stv)
-              console.log("loaded seventv channel")
-              this.Emotes = this.Emotes.concat(stv[0])
-
-              // initializing event api
-              if (this.useEventAPI) {
-                this.EventApi = new EventApi(stv[1], this.channelID, this.onEmoteDelete, this.onEmoteAdd, this.onEmoteRename)
-                this.EventApi.Connect()
-              }
-            }
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
           }
         }
     },

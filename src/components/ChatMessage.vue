@@ -38,12 +38,9 @@ export default {
       dot : 0,
 
       Badges: [],
-<<<<<<< HEAD
 
       smoothColors: this.$route.query.smoothcolor || "1",
 
-=======
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
       paintsEnabled: this.$route.query.paints || "1",
       shadowText: this.$route.query.shadowtext || "0",
       font_size: this.$route.query.font_size || "18",
@@ -107,11 +104,7 @@ export default {
         color = this.defaultColors[Math.floor(Math.random() * this.defaultColors.length)]
       }
       // @todo: добавить убавление яркости
-<<<<<<< HEAD
       if (this.BG != "transparent" && this.smoothColors == "1") {
-=======
-      if (this.BG != "transparent") {
->>>>>>> 0739b295e26264e936e1e5d824bc4586824ee795
 
         // если сообщение сливается с фоном:
         let userRGB = Common.hexToRgb(color)
