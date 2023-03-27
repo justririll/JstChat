@@ -1,3 +1,4 @@
+import apis from '@/methods/tpd.js'
 
 const wait = async(ms) => {
     return new Promise((resolve) => {
@@ -6,13 +7,15 @@ const wait = async(ms) => {
 };
 
 class EventAPI {
-    constructor(set_id, user_id, onDelete, onAdd, onRename) {
+    constructor(set_id, user_id) {
         this.ws = null
         this.set_id = set_id
         this.user_id = user_id //user_id
-        this.onDelete = onDelete
-        this.onAdd = onAdd
-        this.onRename = onRename
+        this.onDelete = undefined
+        this.onAdd = undefined
+        this.onRename = undefined
+
+        this.onPersonalEmotes = undefined
 
         this.IsDisconnected = true
 
@@ -68,9 +71,9 @@ class EventAPI {
         this.ws.send(JSON.stringify(message))
     }
 
-    onMessage(e) {
+    async onMessage(e) {
         let json = JSON.parse(e.data)
-        // console.log(json)
+        console.log(json)
         switch (json.op) {
             case 4000, 4001, 4002, 4003, 4004, 4005, 4006, 4007, 4008, 4009, 4010, 4011: {
                 this.ws.close()
@@ -86,7 +89,8 @@ class EventAPI {
                     "platform": "TWITCH"
                 }
                 this.subscribeToEvent("emote_set.*", cond)
-                // this.subscribeToEvent("cosmetic.*", cond)
+                this.subscribeToEvent("cosmetic.*", cond)
+                this.subscribeToEvent("entitlement.*", cond)
                 // this.subscribeToEvent("cosmetic.*", {
                 //     "id": "407046453",
                 //     "ctx": "user",
@@ -96,7 +100,7 @@ class EventAPI {
             }
             case 0:
                 switch (json.d.type) {
-                    case "emote_set.update":
+                    case "emote_set.update": {
                         if (json.d.body.pulled) {
                             for (const item of json.d.body.pulled) {
                                 this.onDelete(item)
@@ -115,6 +119,17 @@ class EventAPI {
                                 break;
                             }
                         }
+                        break
+                    }
+                    // personal emotes:
+                    case "emote_set.create": {
+                        if (json.d.body.object.name != "Personal Emotes" && this.onPersonalEmotes != undefined) break
+                        let set_id = json.d.body.object.id
+
+                        this.onPersonalEmotes(...await apis.get7tvEmoteSet(set_id))
+
+                        break
+                    }
                 }
                 // че то произошло
 

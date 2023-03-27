@@ -3,6 +3,23 @@
 
 var Huita = {
 
+    async get7tvEmoteSet(set_id) {
+        const response = await fetch(`https://7tv.io/v3/emote-sets/${set_id}`)
+        if (response.ok) {
+            let emotes = []
+            
+            const json = await response.json()
+            for (const emote of json.emotes) {
+                emotes.push({"Name": emote.name, "ID": emote.id, "Type": "7TV", "ZeroWidth": emote.flags == 1})
+            }
+
+            let owner = json.owner.username
+
+            return [emotes, owner]
+        } 
+        throw "failed to fetch 7tv emote set"
+    },
+
     async wait(ms) {
         return new Promise((resolve) => {
             setTimeout(resolve, ms);

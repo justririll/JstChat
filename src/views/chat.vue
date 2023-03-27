@@ -33,6 +33,8 @@
         useEventAPI: this.$route.query.eventapi != "0",
 
         // other:
+        PersonalEmotes: {},
+
         channel: this.$route.query.channel,
         currBG: true,
         IsDisconnected: false,
@@ -67,6 +69,10 @@
         }
         this.Emotes.push({"Name": e.value.name, "ID": e.value.id, "Type": "7TV"})
       },
+      onPersonalEmotes(e, user) {
+        this.PersonalEmotes[user] = e
+        console.log(this.PersonalEmotes)
+      },
       async get7tvchannel() {
         let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
         if (stv.length > 0) {
@@ -75,7 +81,13 @@
 
           // initializing event api
           if (this.useEventAPI) {
-            this.EventApi = new EventApi(stv[1], this.channelID, this.onEmoteDelete, this.onEmoteAdd, this.onEmoteRename)
+            this.EventApi = new EventApi(stv[1], this.channelID, this.onEmoteAdd, this.onEmoteRename)
+
+            this.EventApi.onDelete = this.onEmoteDelete
+            this.EventApi.onAdd = this.onEmoteAdd
+            this.EventApi.onRename = this.onEmoteRename
+            this.EventApi.onPersonalEmotes = this.onPersonalEmotes
+
             this.EventApi.Connect()
           }
         }
@@ -131,6 +143,10 @@
             this.currBG = !this.currBG
           }
           // payload.tags.color = undefined
+          payload.PersonalEmotes = undefined
+          if (payload.source.nick in this.PersonalEmotes) {
+            payload.PersonalEmotes = this.PersonalEmotes[payload.source.nick]
+          }
           this.Messages.push(payload)
         }
         this.client.OnClearChat = async (payload) => {

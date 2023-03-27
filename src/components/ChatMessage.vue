@@ -83,6 +83,7 @@ export default {
           }
         }
       }
+
       // 7tv paints
       if (this.paintsEnabled == "1") {
         for (const value of this.Paints) {
@@ -170,46 +171,17 @@ export default {
         }
       }
 
-      // for (let m of TempMessage.split(" ")) {
-      //   m = m.trim()
-
-      //   if (m == "") {
-      //     continue
-      //   }
-
-      //   let tw_contains = false
-      //   let tw_emote = []
-      //   if (this.payload.tags.emotes) {
-      //     let tw = Common.getEmoteTwitch(twitchEmotes, m)
-      //     tw_contains = tw[0]
-      //     tw_emote = tw[1]
-      //   }
-
-      //   let gl = Common.getEmote(this.Emotes, m)
-      //   let gl_contains = gl[0]
-      //   let gl_emote = gl[1]
-
-      //   if (tw_contains == true && gl_contains == true) {
-      //     tw_contains = false
-      //   }
-
-      //   switch (true) {
-      //     case tw_contains:
-      //       f_mes.push({"Type": "emote", "Text": tw_emote, "ZeroWidth": false})
-      //       break;
-          
-      //     case gl_contains:
-      //       if (gl_emote.ZeroWidth) {
-      //         f_mes.push({"Type": "emote", "Text": this.EmotesBaseUrl[gl_emote.Type].replace('{0}', gl_emote.ID), "ZeroWidth": true})
-      //       } else {
-      //         f_mes.push({"Type": "emote", "Text": this.EmotesBaseUrl[gl_emote.Type].replace('{0}', gl_emote.ID), "ZeroWidth": false})
-      //       }
-      //       break;
-        
-      //     default:
-      //       f_mes.push({"Type": "text", "Text": m+" "})
-      //   }
-      // }
+      if (this.payload.PersonalEmotes !== undefined) {
+        for (const em of this.payload.PersonalEmotes) {
+          for (const i in f_mes) {
+            if (f_mes[i].Text.slice(0, -1) == em.Name) {
+              f_mes[i].Type = "emote"
+              f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
+              f_mes[i].ZeroWidth = em.ZeroWidth
+            }
+          }
+        }
+      }
 
       return f_mes
     },
