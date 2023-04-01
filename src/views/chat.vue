@@ -1,6 +1,7 @@
 <template>
     <div id="chat">
-      <ChatMessage v-for="mes in Messages" :key="mes" :Emotes="Emotes" :GlobalBadges="GlobalBadges" :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
+      <ChatMessage v-for="mes in Messages" :key="mes" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
+       :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
     </div>
 </template>
   
@@ -31,6 +32,7 @@
         BG: this.$route.query.background || "#2b2b2b",
         BG2: "",
         useEventAPI: this.$route.query.eventapi != "0",
+        pEmotesEnabled: this.$route.query.pemotes != "0",
 
         // other:
         PersonalEmotes: {},
@@ -70,8 +72,9 @@
         this.Emotes.push({"Name": e.value.name, "ID": e.value.id, "Type": "7TV"})
       },
       onPersonalEmotes(e, user) {
-        this.PersonalEmotes[user] = e
-        console.log(this.PersonalEmotes)
+        if (e != undefined && user != undefined && this.pEmotesEnabled) {
+          this.PersonalEmotes[user] = e
+        }
       },
       async get7tvchannel() {
         let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
@@ -86,6 +89,7 @@
             this.EventApi.onDelete = this.onEmoteDelete
             this.EventApi.onAdd = this.onEmoteAdd
             this.EventApi.onRename = this.onEmoteRename
+
             this.EventApi.onPersonalEmotes = this.onPersonalEmotes
 
             this.EventApi.Connect()
@@ -161,6 +165,7 @@
 
         try {
           let userid = await apis.getUserID(this.channel)
+          console.log(userid)
           await this.onUserID(userid)
         } catch (error) {
           // pass

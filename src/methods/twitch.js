@@ -1,10 +1,10 @@
 import chat from '@/methods/chat.js'
 
-const wait = async(ms) => {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-};
+// const wait = async(ms) => {
+//     return new Promise((resolve) => {
+//         setTimeout(resolve, ms);
+//     });
+// };
 
 export default class Twitch {
     constructor(channel) {
@@ -41,10 +41,7 @@ export default class Twitch {
         console.log("Disconnected, attempting to reconnect...")
         this.IsDisconnected = true
         
-        while (this.IsDisconnected) {
-            this.connect()
-            await wait(1000)
-        }
+        setTimeout(() => {this.connect()}, 1000);
     }
 
     async onOpen() {

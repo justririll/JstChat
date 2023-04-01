@@ -45,6 +45,7 @@ export default {
       shadowText: this.$route.query.shadowtext || "0",
       font_size: this.$route.query.font_size || "18",
       interpolateSize: this.$route.query.interpbs != "0",
+      border: this.$route.query.border || "2",
     }
   },
   props: {
@@ -94,9 +95,6 @@ export default {
           }
         }
       }
-
-      // return {"User": {"Login": this.payload.user, "DisplayName": displayName, "Color": color},
-      //         "Message": this.payload.message, "Badges": Badges}
   },
   computed: {
     color() {
@@ -104,41 +102,26 @@ export default {
       if (!this.payload.tags.color) {
         color = this.defaultColors[Math.floor(Math.random() * this.defaultColors.length)]
       }
-      // @todo: добавить убавление яркости
       if (this.BG != "transparent" && this.smoothColors == "1") {
-
         // если сообщение сливается с фоном:
         let userRGB = Common.hexToRgb(color)
         let backgroundRGB = Common.hexToRgb(this.BG)
 
         // схожесть цветов
-        // let distance = Math.sqrt(((userRGB[0] - backgroundRGB[0])**2) + ((userRGB[1] - backgroundRGB[1])**2) + ((userRGB[2] - backgroundRGB[2])**2))
-
         let userXYZ = ColourDistance.rgb2xyz(userRGB[0], userRGB[1], userRGB[2])
         let backgroundXYZ = ColourDistance.rgb2xyz(backgroundRGB[0], backgroundRGB[1], backgroundRGB[2])
 
 
         let distance = ColourDistance.deltaE00(userXYZ[0], userXYZ[1], userXYZ[2], backgroundXYZ[0], backgroundXYZ[1], backgroundXYZ[2]) * 10
-
         if (distance == 0) {
-          distance = 0.01
+          distance = 0.0001
         }
         if (distance < 0.3) {
           // значит фон сливается, теперь мы добавляем/убавляем +40% яркость пользователю
-          // let gray = Common.toGray(color)
-          // if (gray > 0.6) {
-          //   let newColor = Common.pSBC(-0.4, color)
-          //   console.log(`Changed ${color} to ${newColor} | distance: ${distance}`)
-          //   return newColor
-          // }
-          // else {
-          let newColor = Common.pSBC(0.2, color)
-          // console.log(`Changed ${color} to ${newColor} | distance: ${distance} | adjust: ${(0.02/distance)*100}`)
+          let newColor = Common.pSBC(0.25, color)
           return newColor
-          // }
         }
       }
-      // console.log(`Don't change ${color} | distance: ${distance}`)
       return color
     },
     FinalMessage() {
@@ -257,6 +240,9 @@ export default {
     },
     Font_Size() {
         return `${this.font_size}px`
+    },
+    Border() {
+      return `${this.border}px solid black`
     }
   }
 }
@@ -285,7 +271,7 @@ export default {
 
     background: v-bind(BG);
     color: white;
-    border-top: 2px solid black;
+    border-top: v-bind(Border);
   }
   .message-text {
     bottom: 5px;
@@ -297,6 +283,7 @@ export default {
     height: v-bind(emoteSize);
     vertical-align: middle;
     filter: unset;
+    padding-right: 8px;
   }
   .message-nick {
     font-weight: 700;

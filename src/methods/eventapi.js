@@ -1,10 +1,10 @@
 import apis from '@/methods/tpd.js'
 
-const wait = async(ms) => {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-};
+// const wait = async(ms) => {
+//     return new Promise((resolve) => {
+//         setTimeout(resolve, ms);
+//     });
+// };
 
 class EventAPI {
     constructor(set_id, user_id) {
@@ -20,20 +20,24 @@ class EventAPI {
         this.IsDisconnected = true
 
         this.IsReconnecting = false
+
+        this.Timeout = 1000
+        this.attemps = 0
     }
 
     Connect() {
         if (!this.IsDisconnected) return
-
+        
         this.ws = new WebSocket("wss://events.7tv.io/v3");
         this.ws.onmessage = (e) => this.onMessage(e)
         this.ws.onclose = () => this.onClose()
         this.ws.onopen = () => this.onOpen()
+        this.ws.onerror = () => {this.ws.close()}
+        this.IsReconnecting = false
     }
 
     async onOpen() {
         this.IsDisconnected = false
-        this.IsReconnecting = false
         console.log("EVENT API connected")
     }
 
@@ -45,19 +49,8 @@ class EventAPI {
         console.log("EVENT API disconnected")
         this.IsDisconnected = true
 
-        let attemps = 10
-        
-        while (this.IsDisconnected) {
-            this.Connect()
-            await wait(500 * attemps)
-
-            if (attemps == 0) {
-                console.log("Event api closed")
-                return
-            }
-
-            attemps--
-        }
+        this.attemps++
+        setTimeout(() => {this.Connect()}, this.Timeout*this.attemps)
     }
 
     subscribeToEvent(event, cond) {
@@ -73,9 +66,10 @@ class EventAPI {
 
     async onMessage(e) {
         let json = JSON.parse(e.data)
-        console.log(json)
+        // console.log(json)
         switch (json.op) {
             case 4000, 4001, 4002, 4003, 4004, 4005, 4006, 4007, 4008, 4009, 4010, 4011: {
+                console.log(json)
                 this.ws.close()
                 this.Connect()
                 break
@@ -123,7 +117,7 @@ class EventAPI {
                     }
                     // personal emotes:
                     case "emote_set.create": {
-                        if (json.d.body.object.name != "Personal Emotes" && this.onPersonalEmotes != undefined) break
+                        if (json.d.body.object.name != "Personal Emotes") break
                         let set_id = json.d.body.object.id
 
                         this.onPersonalEmotes(...await apis.get7tvEmoteSet(set_id))

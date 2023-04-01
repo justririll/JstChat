@@ -1,19 +1,23 @@
 <template>
-  <div class="ChatMessage">
+  <div class="ChatMessage" :bg="payload.BG">
     <div v-for="badge in Badges" :key="badge" class="Badge">
         <img :src="badge.Url">
     </div>
     <span>
-    <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() == this.payload.source.nick" class="message-nick" :style="{color: color, backgroundImage: bgImage}">{{ displayName }}:</span>
-    <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() != this.payload.source.nick" class="message-nick" :style="{color: color, backgroundImage: bgImage}">{{this.payload.source.nick}} ({{ displayName }}):</span>
-      <span class="message-text" v-html="FinalMessage"></span>
+      <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() == this.payload.source.nick" class="message-nick" :style="{color: color, backgroundImage: bgImage}">{{ displayName }}: </span>
+      <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() != this.payload.source.nick" class="message-nick" :style="{color: color, backgroundImage: bgImage}">{{this.payload.source.nick}} ({{ displayName }}): </span>
+      <span class="message-text">
+        <template v-for="mes in FinalMessage" :key="mes">
+          <img v-if="mes.Type=='emote'" :src="mes.Text" :ZeroWidth="mes.ZeroWidth">
+          <template v-if="mes.Type=='text'">{{mes.Text}}</template>
+        </template>  
+      </span>
     </span>
   </div>
 </template>
 
 <script>
 import Common from '@/methods/common'
-import twemoji from 'twemoji'
 import ColourDistance from '@/methods/colour'
 
 // @todo: zero-width emotes
@@ -34,6 +38,8 @@ data() {
 
     dot : 0,
 
+    mes_BG : "",
+
     Badges: [],
   }
 },
@@ -47,119 +53,128 @@ props: {
   paintsEnabled: String,
   interpolateSize: String,
 
+  SmoothColors: String,
+
   defaultColors: Array,
 
   payload: Object,
   BG: String,
+  BG2: String,
+
+  border: String,
 },
 created: async function() {
-    if (this.payload.command.command != "PRIVMSG") {
-        return {}
-    }
-    this.displayName = this.payload.tags["display-name"]
-    if (this.payload.tags["display-name"] == undefined) {
-      this.displayName = this.payload.user
-    }
+  if (this.payload.command.command != "PRIVMSG") {
+          return {}
+      }
+      this.displayName = this.payload.tags["display-name"]
+      if (this.payload.tags["display-name"] == undefined) {
+        this.displayName = this.payload.user
+      }
 
-    // twitch badges
-    if (this.payload.tags.badges) {
-      for (const [key, value] of Object.entries(this.payload.tags["badges"])) {
-        if (this.GlobalBadges[key]) {
-          this.Badges.push({"Url": this.GlobalBadges[key][value]})
+      // twitch badges
+      if (this.payload.tags.badges) {
+        for (const [key, value] of Object.entries(this.payload.tags["badges"])) {
+          if (this.GlobalBadges[key]) {
+            this.Badges.push({"Url": this.GlobalBadges[key][value]})
+          }
         }
       }
-    }
-    // parse extension badges
-    if (this.OtherBadges) {
-      for (const value of this.OtherBadges) {
-        if (value.Users.includes(this.payload.tags["user-id"])) {
-          this.Badges.push({"Url": value.Url})
+      // parse extension badges
+      if (this.OtherBadges) {
+        for (const value of this.OtherBadges) {
+          if (value.Users.includes(this.payload.tags["user-id"])) {
+            this.Badges.push({"Url": value.Url})
+          }
         }
       }
-    }
-    // 7tv paints
-    if (this.paintsEnabled == "1") {
-      for (const value of this.Paints) {
-        if (value.users.includes(this.payload.tags["user-id"])) {
-          this.HavePaints = true
-          this.Paint = value
-          break
-        }
-      }
-    }
 
-    // return {"User": {"Login": this.payload.user, "DisplayName": displayName, "Color": color},
-    //         "Message": this.payload.message, "Badges": Badges}
-},
+      // 7tv paints
+      if (this.paintsEnabled == "1") {
+        for (const value of this.Paints) {
+          if (value.users.includes(this.payload.tags["user-id"])) {
+            this.HavePaints = true
+            this.Paint = value
+            break
+          }
+        }
+      }
+      console.log(this.BG)
+  },
 computed: {
   color() {
+      let mes_BG = this.payload.BG == "0" ? this.BG : this.BG2
+
       let color = this.payload.tags.color
       if (!this.payload.tags.color) {
         color = this.defaultColors[Math.floor(Math.random() * this.defaultColors.length)]
       }
       // @todo: добавить убавление яркости
-      if (this.BG != "transparent") {
-
+      if (mes_BG != "transparent" && this.SmoothColors == "1") {
         // если сообщение сливается с фоном:
         let userRGB = Common.hexToRgb(color)
-        let backgroundRGB = Common.hexToRgb(this.BG)
+        let backgroundRGB = Common.hexToRgb(mes_BG)
 
         // схожесть цветов
-        // let distance = Math.sqrt(((userRGB[0] - backgroundRGB[0])**2) + ((userRGB[1] - backgroundRGB[1])**2) + ((userRGB[2] - backgroundRGB[2])**2))
-
         let userXYZ = ColourDistance.rgb2xyz(userRGB[0], userRGB[1], userRGB[2])
         let backgroundXYZ = ColourDistance.rgb2xyz(backgroundRGB[0], backgroundRGB[1], backgroundRGB[2])
 
 
         let distance = ColourDistance.deltaE00(userXYZ[0], userXYZ[1], userXYZ[2], backgroundXYZ[0], backgroundXYZ[1], backgroundXYZ[2]) * 10
-
         if (distance == 0) {
-          distance = 0.01
+          distance = 0.0001
         }
         if (distance < 0.3) {
           // значит фон сливается, теперь мы добавляем/убавляем +40% яркость пользователю
-          // let gray = Common.toGray(color)
-          // if (gray > 0.6) {
-          //   let newColor = Common.pSBC(-0.4, color)
-          //   console.log(`Changed ${color} to ${newColor} | distance: ${distance}`)
-          //   return newColor
-          // }
-          // else {
-          let newColor = Common.pSBC(0.2, color)
-          // console.log(`Changed ${color} to ${newColor} | distance: ${distance} | adjust: ${(0.02/distance)*100}`)
+          let newColor = Common.pSBC(0.25, color)
           return newColor
-          // }
         }
       }
-      // console.log(`Don't change ${color} | distance: ${distance}`)
       return color
     },
-  FinalMessage() { // message with emotes and etc.
-    let TempMessage = ` ${this.payload.parameters} `
+  FinalMessage() {
+    let TempMessage = `${this.payload.parameters}`
+
+    // TempMessage = twemoji.parse(TempMessage)
+
+    let f_mes = Common.textToMessageObject(TempMessage)
 
     if (this.payload.tags.emotes) {
       let twitchEmotes = Common.parse_smiles(TempMessage, this.payload.tags["emotes"])
-      for (const [k,v] of Object.entries(twitchEmotes)) {
-      while (TempMessage.includes(` ${k} `)) {
-        TempMessage = TempMessage.replace(` ${k} `, ` <img src="${v}" class="Emote"> `)
-      }
-    }
-    }
-
-    for (const key of this.Emotes) {
-      if (key) {
-        while (TempMessage.includes(` ${key.Name} `)) {
-          if (key.ZeroWidth) {
-            TempMessage = TempMessage.replace(` ${key.Name} `, ` <img src="${this.EmotesBaseUrl[key.Type].replace('{0}', key.ID)}" class="Emote" ZeroWidth="true"> `)
-          } else {
-            TempMessage = TempMessage.replace(` ${key.Name} `, ` <img src="${this.EmotesBaseUrl[key.Type].replace('{0}', key.ID)}" class="Emote"> `)
+      for (const [em, url] of Object.entries(twitchEmotes)) {
+        for (const i in f_mes) {
+          if (f_mes[i].Text.slice(0, -1) == em) {
+            f_mes[i].Type = "emote"
+            f_mes[i].Text = url
+            f_mes[i].ZeroWidth = false
           }
         }
       }
     }
-    TempMessage = twemoji.parse(TempMessage)
 
-    return TempMessage
+    for (const em of this.Emotes) {
+      for (const i in f_mes) {
+        if (f_mes[i].Text.slice(0, -1) == em.Name) {
+          f_mes[i].Type = "emote"
+          f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
+          f_mes[i].ZeroWidth = em.ZeroWidth
+        }
+      }
+    }
+
+    if (this.payload.PersonalEmotes !== undefined) {
+      for (const em of this.payload.PersonalEmotes) {
+        for (const i in f_mes) {
+          if (f_mes[i].Text.slice(0, -1) == em.Name) {
+            f_mes[i].Type = "emote"
+            f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
+            f_mes[i].ZeroWidth = em.ZeroWidth
+          }
+        }
+      }
+    }
+
+    return f_mes
   },
   bgImage() {
     if (!this.Paint || this.paintsEnabled == "0") {
@@ -215,13 +230,13 @@ computed: {
     return Common.DecimalToStringRGBA(this.Paint.color)
   },
   badgeSize() {
-    if (this.interpolateSize && parseInt(this.font_size)) {
+    if (this.interpolateSize == "1" && parseInt(this.font_size)) {
       return Math.round(0.8 * parseInt(this.font_size) + 4.4).toString() + "px"
     }
     return "18px"
   },
   emoteSize() {
-    if (this.interpolateSize && parseInt(this.font_size)) {
+    if (this.interpolateSize == "1" && parseInt(this.font_size)) {
       return (parseInt(this.font_size) + 14).toString() + "px"
     }
     return "32px"
@@ -234,19 +249,30 @@ computed: {
   },
   Font_Size() {
       return `${this.font_size}px`
+  },
+  Border() {
+      return `${this.border}px solid black`
   }
 }
 }
 </script>
 
 <style>
+  .ChatMessage[bg="0"] {
+    background-color: v-bind(BG);
+  }
+
+  .ChatMessage[bg="1"] {
+    background-color: v-bind(BG2);
+  }
+
   .Badge {
     display: inline-block;
     padding-right: 3px;
   }
   .Badge img {
     width: v-bind(badgeSize);
-    vertical-align: middle;
+    /* vertical-align: middle; */
   }
   .ChatMessage {
     padding-top: 3px;
@@ -262,7 +288,7 @@ computed: {
 
     background: v-bind(BG);
     color: white;
-    border-top: 2px solid black;
+    border-top: v-bind(Border);
   }
   .message-text {
     bottom: 5px;
@@ -270,6 +296,8 @@ computed: {
   .message-text img, .emoji {
     height: v-bind(emoteSize);
     vertical-align: middle;
+    filter: unset;
+    padding-right: 8px;
   }
   .message-nick {
     font-weight: 700;

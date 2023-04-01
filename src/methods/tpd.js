@@ -9,13 +9,17 @@ var Huita = {
             let emotes = []
             
             const json = await response.json()
-            for (const emote of json.emotes) {
-                emotes.push({"Name": emote.name, "ID": emote.id, "Type": "7TV", "ZeroWidth": emote.flags == 1})
+            if (json.emotes != undefined) {
+                for (const emote of json.emotes) {
+                    emotes.push({"Name": emote.name, "ID": emote.id, "Type": "7TV", "ZeroWidth": emote.flags == 1})
+                }
+    
+                let owner = json.owner.username
+    
+                return [emotes, owner]
+            } else {
+                return [undefined, undefined]
             }
-
-            let owner = json.owner.username
-
-            return [emotes, owner]
         } 
         throw "failed to fetch 7tv emote set"
     },
