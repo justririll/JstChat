@@ -91,7 +91,7 @@
   .author-name {
     text-align: center;
     vertical-align:middle;
-    padding-top: 4vh;
+    padding-top: 2vh;
   }
 
   .settings {
@@ -144,7 +144,8 @@
 
       <div class="author-name">
         Made by JustRirill (rj_st) <br>
-        Github link <a href="https://github.com/justririll/JstChat" target="_blank">here</a>
+        Github link <a href="https://github.com/justririll/JstChat" target="_blank">here</a> <br>
+        This application is not affiliated with Twitch
       </div>
     </div>
 
