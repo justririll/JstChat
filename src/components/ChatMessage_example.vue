@@ -99,7 +99,6 @@ created: async function() {
           }
         }
       }
-      console.log(this.BG)
   },
 computed: {
   color() {

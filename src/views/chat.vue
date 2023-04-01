@@ -37,6 +37,8 @@
         // other:
         PersonalEmotes: {},
 
+        connectedToChat: false,
+
         channel: this.$route.query.channel,
         currBG: true,
         IsDisconnected: false,
@@ -136,7 +138,6 @@
           this.BG2 = "transparent"
         }
 
-        // creating websocket
         this.client = new Twitch(this.channel);
 
         this.client.OnUserId = this.onUserID

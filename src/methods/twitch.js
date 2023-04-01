@@ -10,6 +10,7 @@ export default class Twitch {
     constructor(channel) {
         this.ws = null
         this.IsDisconnected = true
+        this.ManuallyClosed = false
 
         this.channel = channel
         this.channelID = null
@@ -32,16 +33,34 @@ export default class Twitch {
         this.ws.onclose = () => this.onClose()
     }
 
+    part(channel) {
+      this.ws.send(`PART #${channel}`)
+    }
+
+    join(channel) {
+      this.ws.send(`PART #${channel}`)
+    }
+
+    disconnect() {
+      if (this.ws != null ) {
+        this.ManuallyClosed = true
+        this.ws.close()
+      }
+    }
+
     async onError() {
+        if (this.ManuallyClosed) return 
         console.log("Connection error occured, disconnecting...")
         this.ws.close()
     }
 
     async onClose() {
-        console.log("Disconnected, attempting to reconnect...")
-        this.IsDisconnected = true
-        
-        setTimeout(() => {this.connect()}, 1000);
+        if (!this.ManuallyClosed) {
+          console.log("Disconnected, attempting to reconnect...")
+          this.IsDisconnected = true
+          
+          setTimeout(() => {this.connect()}, 1000);
+        } 
     }
 
     async onOpen() {

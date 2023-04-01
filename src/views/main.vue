@@ -144,7 +144,7 @@
 
       <div class="author-name">
         Made by JustRirill (rj_st) <br>
-        Github link <a href="https://github.com/justririll/Chat" target="_blank">here</a>
+        Github link <a href="https://github.com/justririll/JstChat" target="_blank">here</a>
       </div>
     </div>
 
@@ -162,7 +162,7 @@
 
       <div class="setting">
         <div class="setting-name">Background color <br> (in hex; transparent for transparency)</div>
-        <input type="text" :value="BG" v-on:input="onChangeBG">
+        <input onclick="this.select();" type="text" :value="BG" v-on:input="onChangeBG">
       </div>
 
       <div class="setting">
@@ -185,7 +185,7 @@
 
       <div class="setting" id="out">
         <div class="setting-name">Your URL:</div>
-        <input class="out_url" type="text" :value="out_url" readonly>
+        <input onclick="this.select();" class="out_url" type="text" :value="out_url" readonly>
       </div>
 
     </div>
@@ -272,7 +272,6 @@ export default {
         if (i > 0 && i <= 50) this.fontSize = event.target.value.trim()
       },
       onChangeBorder() {
-        console.log(this.Border.trim() == "2")
         this.Border = this.Border.trim() == "2" ? "0" : "2"
       },
       onChangeBG(event) {
@@ -280,7 +279,7 @@ export default {
         if (newBG == "transparent" || newBG == "none") {
           this.BG = "transparent"
           this.BG2 = "transparent"
-        } else if (newBG.length == 7) {
+        } else if (newBG.length == 7 && newBG.substring(0, 1) == "#") {
           try {
             this.BG = newBG
             let minus = 1
@@ -305,7 +304,8 @@ export default {
       },
 
       async join() {
-        if (this.selectedChannel != "") {
+        if (this.selectedChannel != "" && this.selectedChannel != this.channel) {
+          // this.client.part(this.channel)
           this.channel = this.selectedChannel
           await this.create_client()
         }
@@ -316,7 +316,11 @@ export default {
         this.Messages = []
         this.Badges = []
 
+        if (this.client != null) {
+          this.client.disconnect()
+        }
         this.client = new Twitch(this.channel)
+
         this.client.OnUserId = this.onUserID
         this.client.OnPrivateMessage = async (payload) => {
           payload.BG = 0
