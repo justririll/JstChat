@@ -37,10 +37,6 @@
         // other:
         PersonalEmotes: {},
 
-        // aprilFool: new Audio('https://sound-pack.net/download/Sound_08029.mp3'),
-
-        connectedToChat: false,
-
         channel: this.$route.query.channel,
         currBG: true,
         IsDisconnected: false,
@@ -154,10 +150,6 @@
           if (payload.source.nick in this.PersonalEmotes) {
             payload.PersonalEmotes = this.PersonalEmotes[payload.source.nick]
           }
-
-          // if (payload.source.nick == "rj_st" && payload.parameters.trim() == "123") {
-          //   this.aprilFool.play()
-          // }
 
           this.Messages.push(payload)
         }
