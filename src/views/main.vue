@@ -40,7 +40,7 @@
     padding-top: 10vh;
   }
   input {
-      width: 14svw;
+      width: 14vw;
       height: 4vh;
       background-color: #494949;
       color: white;
@@ -50,10 +50,21 @@
       text-align: center;
   }
 
+  select {
+    width: 5vw;
+    height: 4vh;
+    background-color: #494949;
+    color: white;
+    border: 1px solid black;
+    border-radius: 8px;
+    font-size: 3vh;
+    text-align: center;
+  }
+
   .setting {
     display: inline-block;
-    margin-left: 5vw;
-    margin-top: 5vh;
+    margin-left: 3.5vw;
+    margin-top: 6vh;
     text-align: center;
   }
 
@@ -121,10 +132,20 @@
     width: 100%;
   }
 
+  #channel-select {
+    margin-left: 25vw;
+    margin-top: 2vh;
+  }
+
   .github-page {
     text-align: right;
     padding-top: 2vh;
     padding-right: 2vw;
+  }
+
+  #style-select {
+    margin-left: 30vw;
+    margin-top: 2vh;
   }
 </style>
 
@@ -137,7 +158,7 @@
           :payload="mes" :BG="BG" :BG2="BG2" :paintsEnabled="paintsEnabled" 
           :font_size="fontSize" :interpolateSize="interpolateSize"
           :OtherBadges="OtherBadges" :defaultColors="defaultColors"
-          :SmoothColors="SmoothColors" :border="Border"/>
+          :SmoothColors="SmoothColors" :border="Border" :shadowText="textShadow"/>
     </div>
 
     <div style="background-color: #3a3a3a;" class="author">
@@ -149,20 +170,33 @@
       </div>
     </div>
 
-    <div class="settings" id="">
-      <div class="setting">
+    <div class="settings">
+
+      <div class="setting" id="channel-select">
         <div class="setting-name">Channel name</div>
         <input type="text" :value="selectedChannel" v-on:input="onChangeChannel">
       </div>
       <button :onClick="join">Join</button>
 
+      <br>
+
+      <div class="setting" id="style-select">
+        <div class="setting-name">Style</div>
+        <select @change="changeStyle">
+          <option value="1">1</option>
+          <option value="2">2</option>
+        </select>
+      </div>
+
+      <br>
+
       <div class="setting">
         <div class="setting-name">Font size</div>
-        <input type="number" :value="fontSize" max="50" v-on:input="onChangeFontSize">
+        <input type="number" :value="fontSize" min="4" max="50" v-on:input="onChangeFontSize">
       </div>
 
       <div class="setting">
-        <div class="setting-name">Background color <br> (in hex; transparent for transparency)</div>
+        <div class="setting-name">Background color <br> (in hex)</div>
         <input onclick="this.select();" type="text" :value="BG" v-on:input="onChangeBG">
       </div>
 
@@ -179,6 +213,16 @@
       <div class="setting">
         <div class="setting-name">Border</div>
         <input class="checkbox" type="checkbox" :value="Border" v-on:input="onChangeBorder" checked>
+      </div>
+
+      <div class="setting">
+        <div class="setting-name">7TV personal emotes <br> (will not work without eventapi)</div>
+        <input class="checkbox" type="checkbox" :value="pEmotes" v-on:input="onChangepEmotes" checked>
+      </div>
+
+      <div class="setting">
+        <div class="setting-name">7TV event api</div>
+        <input class="checkbox" type="checkbox" :value="eventApi" v-on:input="onChangeEventApi" checked>
       </div>
 
       <br>
@@ -208,10 +252,13 @@ export default {
     data() {
       return {
         paintsEnabled: "1",
-        fontSize: "24",
+        fontSize: "18",
         interpolateSize: "1",
         SmoothColors: "1",
         Border: "2",
+        pEmotes: "1",
+        eventApi: "1",
+        textShadow: "0",
         
         altBG: true,
         BG: "#2b2b2b",
@@ -265,6 +312,32 @@ export default {
       await this.create_client()
     },
     methods: {
+      changeStyle(event) {
+        switch (event.target.value.trim()) {
+          case "1":
+            this.Border = "2"
+
+            this.BG = "#2b2b2b"
+            this.BG2 = "#323232"
+
+            this.SmoothColors = "1"
+
+            this.textShadow = "0"
+            break;
+        
+          case "2":
+            this.Border = "0"
+
+            this.BG = "transparent"
+            this.BG2 = "transparent"
+
+            this.SmoothColors = "0"
+
+            this.textShadow = "1"
+            break;
+        }
+      },
+
       onChangeChannel(event) {
         this.selectedChannel = event.target.value.trim().toLowerCase()
       },
@@ -272,12 +345,15 @@ export default {
         let i = parseInt(event.target.value.trim())
         if (i > 0 && i <= 50) this.fontSize = event.target.value.trim()
       },
+      onChangepEmotes() {
+        this.pEmotes = this.pEmotes.trim() == "1" ? "0" : "1"
+      },
       onChangeBorder() {
         this.Border = this.Border.trim() == "2" ? "0" : "2"
       },
       onChangeBG(event) {
         let newBG =event.target.value.trim()
-        if (newBG == "transparent" || newBG == "none") {
+        if (newBG == "transparent" || newBG == "none" || newBG == "") {
           this.BG = "transparent"
           this.BG2 = "transparent"
         } else if (newBG.length == 7 && newBG.substring(0, 1) == "#") {
@@ -303,6 +379,9 @@ export default {
       onChangeSmooth() {
         this.SmoothColors = this.SmoothColors.trim() == "1" ? "0" : "1"
       },
+      onChangeEventApi() {
+        this.eventApi = this.eventApi.trim() == "1" ? "0" : "1"
+      },
 
       async join() {
         if (this.selectedChannel != "" && this.selectedChannel != this.channel) {
@@ -320,6 +399,7 @@ export default {
         if (this.client != null) {
           this.client.disconnect()
         }
+        this.channelID = null
         this.client = new Twitch(this.channel)
 
         this.client.OnUserId = this.onUserID
@@ -420,6 +500,9 @@ export default {
           if (this.paintsEnabled != "1") additional_query += `&paints=0`
           if (this.SmoothColors != "1") additional_query += `&smoothcolor=0`
           if (this.Border != "2") additional_query += `&border=0`
+          if (this.pEmotes != "1") additional_query += `&pemotes=0`
+          if (this.eventApi != "1") additional_query += `&eventapi=0`
+          if (this.textShadow != "0") additional_query += `&shadowtext=1`
           return `${location.toString()}chat?channel=${this.selectedChannel}${additional_query}`
         }
         return `No channel!`

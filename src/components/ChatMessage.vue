@@ -49,6 +49,7 @@ export default {
     }
   },
   props: {
+    PersonalEmotes: Array,
     Emotes: Array,
     OtherBadges: Array,
     GlobalBadges: Object,
@@ -154,8 +155,8 @@ export default {
         }
       }
 
-      if (this.payload.PersonalEmotes !== undefined) {
-        for (const em of this.payload.PersonalEmotes) {
+      if (this.PersonalEmotes !== undefined) {
+        for (const em of this.PersonalEmotes) {
           for (const i in f_mes) {
             if (f_mes[i].Text.slice(0, -1) == em.Name) {
               f_mes[i].Type = "emote"
@@ -198,7 +199,7 @@ export default {
     },
     filterText() {
       if (this.shadowText == "1") {
-        return "drop-shadow(-1px 2px 1px #2b2b2b)"
+        return "drop-shadow(1px 2px 1px #2b2b2b)"
       }
       return ""
     },
@@ -208,9 +209,6 @@ export default {
         .map((v) => `drop-shadow(${v.x_offset}px ${v.y_offset}px ${v.radius}px ${Common.DecimalToStringRGBA(v.color)})`)
         .join(" ");
       } catch (error) {
-        if (this.shadowText == "1") {
-          return "drop-shadow(-1px 2px 1px #2b2b2b)"
-        }
         return ""
       }
     },

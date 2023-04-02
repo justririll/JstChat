@@ -291,6 +291,8 @@ computed: {
   }
   .message-text {
     bottom: 5px;
+    margin-right: 13px;
+    filter: v-bind('filterText');
   }
   .message-text img, .emoji {
     height: v-bind(emoteSize);

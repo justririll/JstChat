@@ -1,6 +1,6 @@
 <template>
     <div id="chat">
-      <ChatMessage v-for="mes in Messages" :key="mes" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
+      <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
        :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
     </div>
 </template>
@@ -146,10 +146,10 @@
             this.currBG = !this.currBG
           }
           // payload.tags.color = undefined
-          payload.PersonalEmotes = undefined
-          if (payload.source.nick in this.PersonalEmotes) {
-            payload.PersonalEmotes = this.PersonalEmotes[payload.source.nick]
-          }
+          // payload.PersonalEmotes = undefined
+          // if (payload.source.nick in this.PersonalEmotes) {
+          //   payload.PersonalEmotes = this.PersonalEmotes[payload.source.nick]
+          // }
 
           this.Messages.push(payload)
         }
