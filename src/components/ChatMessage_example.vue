@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import Common from '@/methods/common'
-import ColourDistance from '@/methods/colour'
+import Common from '@/utils/common'
+import ColourDistance from '@/utils/colour'
 
 // @todo: zero-width emotes
 

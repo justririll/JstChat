@@ -16,8 +16,8 @@
   }
 
   button {
-    width: 5vw;
-    font-size: 3vh;
+    min-width: 5vw;
+    font-size: 2.4vh;
     border: 1px solid black;
     background-color: #494949;
     color: white;
@@ -26,11 +26,11 @@
   }
 
   .out_url {
-    width: 30vw;
+    min-width: 50vw;
   }
   #out {
-    margin-left: 25vw;
-    margin-top: 20vh;
+    margin-left: 10vw;
+    margin-top: 5vh;
   }
 
   .setting-bottom {
@@ -40,19 +40,20 @@
     padding-top: 10vh;
   }
   input {
-      width: 14vw;
-      height: 4vh;
-      background-color: #494949;
-      color: white;
-      border: 1px solid black;
-      border-radius: 8px;
-      font-size: 3vh;
-      text-align: center;
+    min-width: 50px;
+    max-width: 75px;
+    min-height: 25px;
+    background-color: #494949;
+    color: white;
+    border: 1px solid black;
+    border-radius: 8px;
+    font-size: 2.4vh;
+    text-align: center;
   }
 
   select {
-    width: 5vw;
-    height: 4vh;
+    min-width: 5vw;
+    min-height: 4vh;
     background-color: #494949;
     color: white;
     border: 1px solid black;
@@ -61,16 +62,9 @@
     text-align: center;
   }
 
-  .setting {
-    display: inline-block;
-    margin-left: 3.5vw;
-    margin-top: 6vh;
-    text-align: center;
-  }
-
   .checkbox {
-    width: 3vw;
-    height: 3vh;
+    min-width: 25px;
+    min-height: 25px;
   }
 
   .chat {
@@ -84,6 +78,14 @@
 
     user-select: none;
 
+    font-family: v-bind(fontName);
+  }
+
+  .chat-box {
+    position: absolute;
+    bottom: v-bind(fromBottom);
+
+    width: 100%;
   }
 
   .author {
@@ -103,16 +105,41 @@
     text-align: center;
     vertical-align:middle;
     padding-top: 2vh;
+    height: 10%;
+  }
+
+  .quick-settings {
+    position: fixed;
+    left: 25%;
+    width: 75%;
+    height: 18%;
+    
+    border-left: 4px solid black;
+    border-bottom: 4px solid black;
+  }
+
+  .url {
+    position: fixed;    
+    left: 25%;
+    bottom: 10%;
+    width: 75%;
+    height: 14%;
+
+    border-left: 4px solid black;
+    border-top: 4px solid black;
   }
 
   .settings {
     border-left: 4px solid black;
 
     width: 75%;
-    height: 90%;
+    height: 57%;
     position: fixed;
     bottom: 10%;
     left: 25%;
+
+    top: 18.5%;
+    bottom: 14.5%;
 
     overflow: auto;
   }
@@ -133,7 +160,7 @@
   }
 
   #channel-select {
-    margin-left: 25vw;
+    /* margin-left: 30%; */
     margin-top: 2vh;
   }
 
@@ -144,8 +171,42 @@
   }
 
   #style-select {
-    margin-left: 30vw;
+    /* margin-left: 40%; */
     margin-top: 2vh;
+  }
+
+  /* this is need only for settigs block */
+  .nsetting {
+    background-color: #414040;
+    min-height: 7vh;
+    width: 100%;
+    display: block;
+    border-bottom: 2px solid black;
+  }
+  .nsetting-name {
+    margin-top: 1%;
+    margin-left: 6%;
+    display: inline-block;
+    font-size: 2vh;
+    width: 40%;
+  }
+  .nsetting-input {
+    margin-top: 2%;
+    margin-right: 3%;
+    float: right;
+  }
+
+  .small-desc {
+    font-size: 1.5vh;
+    opacity: 0.5;
+  }
+
+  /* and this need for out and style select LULE */
+  .setting {
+    display: inline-block;
+    margin-left: 3.5vw;
+    margin-top: 6vh;
+    text-align: center;
   }
 </style>
 
@@ -153,12 +214,14 @@
 <div id="main">
 
     <div style="background-color: rgb(64 64 64);" class="chat" ref="chat">
+        <div class="chat-box">
           <ChatMessage class="mes" v-for="mes in Messages" :key="mes"
           :Emotes="Emotes" :Paints="Paints" :GlobalBadges="GlobalBadges"
           :payload="mes" :BG="BG" :BG2="BG2" :paintsEnabled="paintsEnabled" 
           :font_size="fontSize" :interpolateSize="interpolateSize"
           :OtherBadges="OtherBadges" :defaultColors="defaultColors"
           :SmoothColors="SmoothColors" :border="Border" :shadowText="textShadow"/>
+        </div>
     </div>
 
     <div style="background-color: #3a3a3a;" class="author">
@@ -170,69 +233,82 @@
       </div>
     </div>
 
+    <div class="quick-settings">
+      <center>
+        <div class="setting" id="channel-select">
+          <div class="setting-name">Channel name</div>
+          <input type="text" :value="selectedChannel" v-on:input="onChangeChannel">
+        </div>
+        <button :onClick="join">Try it!</button>
+
+        <div class="setting" id="style-select">
+          <div class="setting-name">Style</div>
+          <select @change="changeStyle">
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>
+        </div>
+      </center>
+    </div>
+
     <div class="settings">
 
-      <div class="setting" id="channel-select">
-        <div class="setting-name">Channel name</div>
-        <input type="text" :value="selectedChannel" v-on:input="onChangeChannel">
-      </div>
-      <button :onClick="join">Join</button>
-
-      <br>
-
-      <div class="setting" id="style-select">
-        <div class="setting-name">Style</div>
-        <select @change="changeStyle">
-          <option value="1">1</option>
-          <option value="2">2</option>
-        </select>
+      <div class="nsetting">
+          <div class="nsetting-name">Font size</div>
+          <input class="nsetting-input" type="number" :value="fontSize" min="4" max="50" v-on:input="onChangeFontSize">
       </div>
 
-      <br>
-
-      <div class="setting">
-        <div class="setting-name">Font size</div>
-        <input type="number" :value="fontSize" min="4" max="50" v-on:input="onChangeFontSize">
+      <div class="nsetting">
+          <div class="nsetting-name">Background color <br> <span class="small-desc">(in hex)</span></div>
+          <input class="nsetting-input" onclick="this.select();" type="text" :value="BG" v-on:input="onChangeBG">
       </div>
 
-      <div class="setting">
-        <div class="setting-name">Background color <br> (in hex)</div>
-        <input onclick="this.select();" type="text" :value="BG" v-on:input="onChangeBG">
+      <div class="nsetting">
+        <div class="nsetting-name">Font name from <a target="_blank" href="https://fonts.google.com/">here</a> <br> <span class="small-desc">(e.g. "Castoro Titling"; CASE SENSIVITY!)</span></div>
+        <input class="nsetting-input" onclick="this.select();" type="text" :value="fontName" v-on:change="onChangeFont">
       </div>
 
-      <div class="setting">
-        <div class="setting-name">7TV paints</div>
-        <input class="checkbox" type="checkbox" :value="paintsEnabled" v-on:input="onChangePaints" checked>
+      <div class="nsetting">
+        <div class="nsetting-name">Show messages from top to bottom</div>
+        <input class="nsetting-input" type="checkbox" :value="fromBottom" v-on:input="onChangeBottom" checked>
       </div>
 
-      <div class="setting">
-        <div class="setting-name">Make some colors readable <br> (only if background not transparent)</div>
-        <input class="checkbox" type="checkbox" :value="SmoothColors" v-on:input="onChangeSmooth" checked>
+      <div class="nsetting">
+        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(recommend to disable showing messages from top to bottom; this woudn't work in this test chat)</span></div>
+        <input class="nsetting-input" onclick="this.select();" type="text" :value="deleteAfter" v-on:input="onChangeFade">
       </div>
 
-      <div class="setting">
-        <div class="setting-name">Border</div>
-        <input class="checkbox" type="checkbox" :value="Border" v-on:input="onChangeBorder" checked>
+      <div class="nsetting">
+        <div class="nsetting-name">7TV paints</div>
+        <input class="nsetting-input" type="checkbox" :value="paintsEnabled" v-on:input="onChangePaints" checked>
       </div>
 
-      <div class="setting">
-        <div class="setting-name">7TV personal emotes <br> (will not work without eventapi)</div>
-        <input class="checkbox" type="checkbox" :value="pEmotes" v-on:input="onChangepEmotes" checked>
+      <div class="nsetting">
+        <div class="nsetting-name">Smooth colors <br> <span class="small-desc">(works when background is not transparent only)</span></div>
+        <input class="nsetting-input" type="checkbox" :value="SmoothColors" v-on:input="onChangeSmooth" checked>
       </div>
 
-      <div class="setting">
-        <div class="setting-name">7TV event api</div>
-        <input class="checkbox" type="checkbox" :value="eventApi" v-on:input="onChangeEventApi" checked>
+      <div class="nsetting">
+        <div class="nsetting-name">Border</div>
+        <input class="nsetting-input" type="checkbox" :value="Border" v-on:input="onChangeBorder" checked>
       </div>
 
-      <br>
-      <br>
+      <div class="nsetting">
+        <div class="nsetting-name">7TV personal emotes <br> <span class="small-desc">(works with EventAPI only)</span></div>
+        <input class="nsetting-input" type="checkbox" :value="pEmotes" v-on:input="onChangepEmotes" checked>
+      </div>
 
+      <div class="nsetting">
+        <div class="nsetting-name">7TV event api</div>
+        <input class="nsetting-input" type="checkbox" :value="eventApi" v-on:input="onChangeEventApi" checked>
+      </div>
+    </div>
+
+    <div class="url">
       <div class="setting" id="out">
         <div class="setting-name">Your URL:</div>
-        <input onclick="this.select();" class="out_url" type="text" :value="out_url" readonly>
+        <input onclick="this.select(); navigator.clipboard.writeText(this.value);" class="out_url" type="text" :value="out_url" readonly>
       </div>
-
     </div>
     
 </div>
@@ -240,9 +316,10 @@
 
 <script>
 import ChatMessage from '@/components/ChatMessage_example.vue'
-import Common from '@/methods/common'
-import Twitch from '@/methods/twitch.js'
-import apis from '@/methods/tpd.js'
+import Common from '@/utils/common'
+import Twitch from '@/utils/twitch.js'
+import apis from '@/utils/tpd.js'
+import { useHead } from '@vueuse/head'
 
 export default {
     name: 'main-page',
@@ -259,7 +336,11 @@ export default {
         pEmotes: "1",
         eventApi: "1",
         textShadow: "0",
+        fromBottom: "1",
+        deleteAfter: "0",
         
+        fontName: "Roboto",
+
         altBG: true,
         BG: "#2b2b2b",
         BG2: "",
@@ -370,8 +451,23 @@ export default {
           }
         }
       },
+      onChangeFade(event) {
+        const parsed = parseInt(event.target.value.trim());
+        if (isNaN(parsed)) this.deleteAfter = "0";
+        else this.deleteAfter = event.target.value.trim();
+      },
+      onChangeFont(event) {
+        let fontName = event.target.value.trim()
+        this.fontName = fontName
+        useHead({
+          link: [{href: `https://fonts.googleapis.com/css2?family=${fontName}&display=swap`, rel: "stylesheet"}],
+        })
+      },
       onChangePaints() {
         this.paintsEnabled = this.paintsEnabled.trim() == "1" ? "0" : "1"
+      },
+      onChangeBottom() {
+        this.fromBottom = this.fromBottom.trim() == "1" ? "0" : "1"
       },
       onChangeInterpolate() {
         this.interpolateSize = this.interpolateSize.trim() == "1" ? "0" : "1"
@@ -503,6 +599,10 @@ export default {
           if (this.pEmotes != "1") additional_query += `&pemotes=0`
           if (this.eventApi != "1") additional_query += `&eventapi=0`
           if (this.textShadow != "0") additional_query += `&shadowtext=1`
+          if (this.fromBottom != "1") additional_query += `&bottom=0`
+          if (this.fontName != "Roboto") additional_query += `&fontname=${this.fontName}`
+          if (this.deleteAfter != "0") additional_query += `&deleteafter=${this.deleteAfter}`
+
           return `${location.toString()}chat?channel=${this.selectedChannel}${additional_query}`
         }
         return `No channel!`

@@ -1,4 +1,4 @@
-import apis from '@/methods/tpd.js'
+import apis from '@/utils/tpd.js'
 
 // const wait = async(ms) => {
 //     return new Promise((resolve) => {

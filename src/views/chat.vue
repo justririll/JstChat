@@ -1,24 +1,27 @@
 <template>
     <div id="chat">
-      <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
-       :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
+      <transition-group name="mes">
+        <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
+        :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
+      </transition-group>
     </div>
 </template>
-  
+
 <script>
   // значки ффз (и чаттерино?)
 
   import ChatMessage from '@/components/ChatMessage.vue'
-  import apis from '@/methods/tpd.js'
-  import EventApi from '@/methods/eventapi.js'
-  import Twitch from '@/methods/twitch.js'
-  import Common from '@/methods/common'
+  import apis from '@/utils/tpd.js'
+  import EventApi from '@/utils/eventapi.js'
+  import Twitch from '@/utils/twitch.js'
+  import Common from '@/utils/common'
+  import { useHead } from '@vueuse/head'
   
   export default {
     name: 'chat-page',
     components: {
-      ChatMessage
-  },
+        ChatMessage
+    },
     data() {
       return {
         EventApi: null,
@@ -33,6 +36,9 @@
         BG2: "",
         useEventAPI: this.$route.query.eventapi != "0",
         pEmotesEnabled: this.$route.query.pemotes != "0",
+        deleteAfter : this.$route.query.deleteafter || "0",
+        fontName: this.$route.query.fontname || "roboto",
+        fromBottom: this.$route.query.bottom || "1", // 0 = show from bottom to top; 1 = from top to bottom
 
         // other:
         PersonalEmotes: {},
@@ -119,6 +125,10 @@
         }
     },
     created: async function() {
+      useHead({
+          link: [{href: `https://fonts.googleapis.com/css2?family=${this.$route.query.fontname || "roboto"}&display=swap`, rel: "stylesheet"}],
+        })
+
         // check for bg:
         if (this.BG != "#2b2b2b" && this.BG != "transparent") {
           this.BG = "#" + this.BG
@@ -152,6 +162,15 @@
           // }
 
           this.Messages.push(payload)
+
+          if (this.deleteAfter != "0") {
+            setTimeout(() => {
+                let index = this.Messages.indexOf(payload)
+                if (index > -1) {
+                  this.Messages.splice(index, 1);
+                }
+            }, parseInt(this.deleteAfter)*1000);
+          }
         }
         this.client.OnClearChat = async (payload) => {
           this.Messages = this.Messages.filter(item => item.source.nick !== payload.parameters)
@@ -205,9 +224,19 @@
   #chat {
     position: absolute;
     width: 100%;
-    padding: 0;
+
+    bottom: v-bind(fromBottom);
 
     overflow: hidden;
+    font-family: v-bind(fontName);
+  }
+
+  .mes-leave-active {
+    transition: opacity 0.5s ease;
+  }
+
+  .mes-leave-to {
+    opacity: 0;
   }
 </style>
   

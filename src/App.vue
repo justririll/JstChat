@@ -12,11 +12,10 @@
 
 <style>
   #app {
-    position: relative;
+    /* position: relative; */
+    height: 100%;
   
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  
-    font-family: 'Roboto', sans-serif;
-  }
+    }
 </style>

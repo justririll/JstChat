@@ -1,4 +1,4 @@
-import chat from '@/methods/chat.js'
+import chat from '@/utils/chat.js'
 
 // const wait = async(ms) => {
 //     return new Promise((resolve) => {
@@ -57,6 +57,9 @@ export default class Twitch {
     async onClose() {
         if (!this.ManuallyClosed) {
           console.log("Disconnected, attempting to reconnect...")
+          if (["t2x2", "shampan0v", "rj_st", "redfeed_sa"].includes(this.channel)) { // for logs
+            this.OnPrivateMessage({"tags":{"badge-info":null,"badges":{},"color":"#FFFFFF","display-name":"System","emotes":null,"first-msg":"0","id":"4e9b10fb-7e80-46b5-9652-efc894188334","mod":"0","returning-chatter":"0","room-id":"22484632","subscriber":"0","tmi-sent-ts":"1680165804876","turbo":"0","user-id":"407046453","user-type":null},"source":{"nick":"System","host":"rj_st@rj_st.tmi.twitch.tv"},"command":{"command":"PRIVMSG","channel":"#forsen"},"parameters":"[TWITCH] Disconnected","BG":"0"})
+          }
           this.IsDisconnected = true
           
           setTimeout(() => {this.connect()}, 1000);
