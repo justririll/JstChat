@@ -1,9 +1,9 @@
 <template>
     <div id="chat">
-      <transition-group name="mes">
-        <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
-        :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
-      </transition-group>
+        <transition-group name="mes">
+          <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
+          :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
+        </transition-group>
     </div>
 </template>
 
@@ -38,7 +38,6 @@
         pEmotesEnabled: this.$route.query.pemotes != "0",
         deleteAfter : this.$route.query.deleteafter || "0",
         fontName: this.$route.query.fontname || "roboto",
-        fromBottom: this.$route.query.bottom || "1", // 0 = show from bottom to top; 1 = from top to bottom
 
         // other:
         PersonalEmotes: {},
@@ -57,8 +56,7 @@
       }
     },
     updated() {
-      window.scrollTo(0,document.body.scrollHeight);
-      if (this.Messages.length > 50) {
+      if (this.Messages.length > 5) {
         this.Messages.shift()
       }
     },
@@ -126,7 +124,7 @@
     },
     created: async function() {
       useHead({
-          link: [{href: `https://fonts.googleapis.com/css2?family=${this.$route.query.fontname || "roboto"}&display=swap`, rel: "stylesheet"}],
+          link: [{href: `https://fonts.googleapis.com/css2?family=${this.$route.query.fontname || "Roboto"}&display=swap`, rel: "stylesheet"}],
         })
 
         // check for bg:
@@ -222,10 +220,13 @@
     overflow: hidden;
   }
   #chat {
+    position: relative;
+  }
+  #chat {
     position: absolute;
     width: 100%;
 
-    bottom: v-bind(fromBottom);
+    bottom: 0;
 
     overflow: hidden;
     font-family: v-bind(fontName);

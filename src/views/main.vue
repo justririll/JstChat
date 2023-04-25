@@ -269,12 +269,7 @@
       </div>
 
       <div class="nsetting">
-        <div class="nsetting-name">Show messages from top to bottom</div>
-        <input class="nsetting-input" type="checkbox" :value="fromBottom" v-on:input="onChangeBottom" checked>
-      </div>
-
-      <div class="nsetting">
-        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(recommend to disable showing messages from top to bottom; this woudn't work in this test chat)</span></div>
+        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(this woudn't work in this test chat)</span></div>
         <input class="nsetting-input" onclick="this.select();" type="text" :value="deleteAfter" v-on:input="onChangeFade">
       </div>
 
@@ -336,7 +331,6 @@ export default {
         pEmotes: "1",
         eventApi: "1",
         textShadow: "0",
-        fromBottom: "1",
         deleteAfter: "0",
         
         fontName: "Roboto",
@@ -599,7 +593,6 @@ export default {
           if (this.pEmotes != "1") additional_query += `&pemotes=0`
           if (this.eventApi != "1") additional_query += `&eventapi=0`
           if (this.textShadow != "0") additional_query += `&shadowtext=1`
-          if (this.fromBottom != "1") additional_query += `&bottom=0`
           if (this.fontName != "Roboto") additional_query += `&fontname=${this.fontName}`
           if (this.deleteAfter != "0") additional_query += `&deleteafter=${this.deleteAfter}`
 
