@@ -83,7 +83,7 @@
 
   .chat-box {
     position: absolute;
-    bottom: v-bind(fromBottom);
+    bottom: 0;
 
     width: 100%;
   }
