@@ -1,6 +1,6 @@
 <template>
     <div id="chat">
-        <transition-group name="mes">
+        <transition-group :name="transition_group">
           <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
           :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
         </transition-group>
@@ -53,11 +53,6 @@
         client: null,
         Messages: [],
         defaultColors: ["#4242f7", "#ff7f50", "#1e90ff", "#00ff7f", "#9acd32", "#008000", "#ff4500", "#ff0000", "#daa520", "#ff69b4", "#5f9ea0", "#2e8b57", "#d2691e", "#a065d7", "#b22222"],
-      }
-    },
-    updated() {
-      if (this.Messages.length > 5) {
-        this.Messages.shift()
       }
     },
     methods: {
@@ -169,6 +164,9 @@
                 }
             }, parseInt(this.deleteAfter)*1000);
           }
+          if (this.Messages.length > 50) {
+            this.Messages.shift()
+          }
         }
         this.client.OnClearChat = async (payload) => {
           this.Messages = this.Messages.filter(item => item.source.nick !== payload.parameters)
@@ -210,6 +208,12 @@
         this.OtherBadges.unshift({"Users": ["69078167"], "Url": "https://i.imgur.com/nIm3MvW.gif"})
         this.OtherBadges.unshift({"Users": ["489131898"], "Url": "https://i.imgur.com/Kg7X4ga.gif"})
         this.Paints = bp[1]
+    },
+    computed: {
+      transition_group() {
+        if (this.deleteAfter != "0") return "tr"
+        return "fl"
+      }
     }
   }
 </script>
@@ -232,11 +236,10 @@
     font-family: v-bind(fontName);
   }
 
-  .mes-leave-active {
+  .tr-leave-active {
     transition: opacity 0.5s ease;
   }
-
-  .mes-leave-to {
+  .tr-leave-to {
     opacity: 0;
   }
 </style>
