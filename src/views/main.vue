@@ -332,6 +332,7 @@ export default {
         eventApi: "1",
         textShadow: "0",
         deleteAfter: "0",
+        fromBottom: "0",
         
         fontName: "Roboto",
 
@@ -595,6 +596,7 @@ export default {
           if (this.textShadow != "0") additional_query += `&shadowtext=1`
           if (this.fontName != "Roboto") additional_query += `&fontname=${this.fontName}`
           if (this.deleteAfter != "0") additional_query += `&deleteafter=${this.deleteAfter}`
+          if (this.fromBottom != "1") additional_query += `&bottom=0`
 
           return `${location.toString()}chat?channel=${this.selectedChannel}${additional_query}`
         }
