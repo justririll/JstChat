@@ -191,7 +191,8 @@ var chat = {
             tags: null,
             source: null,
             command: null,
-            parameters: null
+            parameters: null,
+            action: false,
         };
     
         // The start index. Increments as we parse the IRC message.
@@ -264,6 +265,7 @@ var chat = {
         }
 
         if (parsedMessage.parameters) {
+            if (parsedMessage.parameters.split(" ")[0] == "\x01ACTION") parsedMessage.action = true;
             parsedMessage.parameters = parsedMessage.parameters.replace("ACTION", "")
             parsedMessage.parameters = parsedMessage.parameters.replace("", "")
         }

@@ -1,12 +1,12 @@
 <template>
     <div class="ChatMessage">
       <div v-for="badge in Badges" :key="badge" class="Badge">
-          <img :src="badge.Url">
+          <img :provider="badge.provider" :src="badge.Url">
       </div>
       <span>
-        <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() == this.payload.source.nick" class="message-nick" :style="{color: color, backgroundImage: bgImage}">{{ displayName }}: </span>
-        <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() != this.payload.source.nick" class="message-nick" :style="{color: color, backgroundImage: bgImage}">{{this.payload.source.nick}} ({{ displayName }}): </span>
-        <span class="message-text">
+        <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() == this.payload.source.nick" class="message-nick" :style="{color: color}">{{ displayName }}: </span>
+        <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() != this.payload.source.nick" class="message-nick" :style="{color: color}">{{this.payload.source.nick}}({{ displayName }}): </span>
+        <span class="message-text" :action="this.payload.action" :HavePaints="HavePaints">
           <template v-for="mes in FinalMessage" :key="mes">
             <img v-if="mes.Type=='emote'" :src="mes.Text" :ZeroWidth="mes.ZeroWidth">
             <template v-if="mes.Type=='text'">{{mes.Text}}</template>
@@ -46,6 +46,7 @@ export default {
       font_size: this.$route.query.font_size || "18",
       interpolateSize: this.$route.query.interpbs != "0",
       border: this.$route.query.border || "2",
+      padding: this.$route.query.padding || "1",
     }
   },
   props: {
@@ -54,6 +55,8 @@ export default {
     OtherBadges: Array,
     GlobalBadges: Object,
     Paints: Array,
+
+    overridedBadges: Boolean,
 
     defaultColors: Array,
 
@@ -73,7 +76,9 @@ export default {
       if (this.payload.tags.badges) {
         for (const [key, value] of Object.entries(this.payload.tags["badges"])) {
           if (this.GlobalBadges[key]) {
-            this.Badges.push({"Url": this.GlobalBadges[key][value]})
+            let provider = "Twitch"
+            if (this.overridedBadges && key == "moderator") provider = "ffz-mod-badge"
+            this.Badges.push({"Url": this.GlobalBadges[key][value], "provider": provider})
           }
         }
       }
@@ -81,7 +86,7 @@ export default {
       if (this.OtherBadges) {
         for (const value of this.OtherBadges) {
           if (value.Users.includes(this.payload.tags["user-id"])) {
-            this.Badges.push({"Url": value.Url})
+            this.Badges.push({"Url": value.Url, "provider": value.Type})
           }
         }
       }
@@ -241,6 +246,12 @@ export default {
     },
     Border() {
       return `${this.border}px solid black`
+    },
+    Padding() {
+      if (this.padding == "1") {
+        return "3px"
+      }
+      return "0px"
     }
   }
 }
@@ -254,10 +265,16 @@ export default {
   .Badge img {
     height: v-bind(badgeSize);
     /* vertical-align: middle; */
+    margin-bottom: -3px;
+  }
+  .Badge img[provider="ffz-mod-badge"] {
+    background-color: #00ad03;
+    border-radius: 2px;
   }
   .ChatMessage {
-    padding-top: 3px;
-    padding-bottom: 3px;
+    padding-top: v-bind(Padding);
+    padding-bottom: v-bind(Padding);
+
     padding-left: 5px;
 
     min-height: v-bind(messageSize);
@@ -295,10 +312,25 @@ export default {
     -webkit-background-clip: text;
     background-clip: text !important;
     background-color: currentcolor;
+    background-image: v-bind('bgImage');
   }
   .message-text img[ZeroWidth="true"] {
     position: absolute;
 		z-index: 1;
 		transform: translateX(-100%);
+  }
+
+  .message-text[action="true"][HavePaints="false"] {
+    color: v-bind('color')
+  }
+
+  .message-text[action="true"][HavePaints="true"] {
+    filter: v-bind('filter');
+    color: v-bind('paintColor');
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text !important;
+    background-color: currentcolor;
+    background-image: v-bind('bgImage');
   }
 </style>

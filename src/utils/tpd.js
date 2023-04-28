@@ -101,7 +101,7 @@ var Huita = {
         if (response.ok) {
                 const json = await response.json()
             for (const value of json["badges"]) {
-                badges.push({"Users": value.users, "Url": value.urls[1][1]})
+                badges.push({"Users": value.users, "Url": value.urls[1][1], Type: "7TV"})
             }
             for (const value of json["paints"]) {
                 paints.push(value)
@@ -183,7 +183,7 @@ var Huita = {
         }
         return []
     },
-    async getFfzEmotes(channel) {
+    async getFfzEmotes(channel) { // returns emotes, mod badge, vip badge
         let emotes = []
 
         const response = await fetch(`https://api.frankerfacez.com/v1/room/${channel}`)
@@ -192,7 +192,16 @@ var Huita = {
             for (const value of json["sets"][json["room"]["set"].toString()]["emoticons"]) {
                 emotes.push({"Name": value.name, "ID": value.id, "Type": "FFZ"})
             }
-            return emotes
+
+            // getting custom badges:
+            console.log(json.room.mod_urls)
+            let mod_badge = undefined
+            if (json.room.mod_urls != undefined) mod_badge = json.room.mod_urls["2"]
+
+            console.log(json.vip_badge)
+            let vip_badge = undefined
+            if (json.room.vip_badge != undefined) vip_badge = json.room.vip_badge["2"]
+            return [emotes, mod_badge, vip_badge]
         }
         if (response.status != 404) {
             throw "not loaded"

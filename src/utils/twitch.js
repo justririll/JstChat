@@ -42,10 +42,14 @@ export default class Twitch {
     }
 
     disconnect() {
-      if (this.ws != null ) {
+      if (this.ws != null) {
         this.ManuallyClosed = true
         this.ws.close()
       }
+    }
+
+    Disconnect() {
+      this.ws.close()
     }
 
     async onError() {

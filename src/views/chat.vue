@@ -2,7 +2,7 @@
     <div id="chat">
         <transition-group :name="transition_group">
           <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
-          :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG"/>
+          :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG" :overridedBadges="overridedBadges"/>
         </transition-group>
     </div>
 </template>
@@ -38,6 +38,7 @@
         pEmotesEnabled: this.$route.query.pemotes != "0",
         deleteAfter : this.$route.query.deleteafter || "0",
         fontName: this.$route.query.fontname || "roboto",
+        overridedBadges: false,
 
         // other:
         PersonalEmotes: {},
@@ -190,8 +191,11 @@
         console.log("loaded 7tv global emotes")
         this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getBttvGlobalEmotes, [], 3))
         console.log("loaded bttv global emotes")
-        this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getFfzEmotes, [this.channel], 3))
+
+        let ffz_data = await apis.RetryOnError(apis.getFfzEmotes, [this.channel], 3) // this contains emotes, mod badge, vip badge
+        this.Emotes = this.Emotes.concat(ffz_data[0])
         console.log("loaded ffz channel emotes")
+
         this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getFfzGlobalEmotes, [], 3))
         console.log("loaded ffz global emotes")
 
@@ -200,6 +204,9 @@
           gb["subscriber"] = this.GlobalBadges["subscriber"]
         }
         this.GlobalBadges = gb
+        console.log(ffz_data)
+        if (ffz_data[1] != undefined) {this.GlobalBadges["moderator"]["1"] = ffz_data[1]; this.overridedBadges = true}
+        if (ffz_data[2] != undefined) this.GlobalBadges["vip"]["1"] = ffz_data[2]
 
         let bp = await apis.RetryOnError(apis.get7tvBadgesPaints, [], 3)
         this.OtherBadges = bp[0]
@@ -222,9 +229,6 @@
   body {
     margin: 0px;
     overflow: hidden;
-  }
-  #chat {
-    position: relative;
   }
   #chat {
     position: absolute;

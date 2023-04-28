@@ -220,7 +220,8 @@
           :payload="mes" :BG="BG" :BG2="BG2" :paintsEnabled="paintsEnabled" 
           :font_size="fontSize" :interpolateSize="interpolateSize"
           :OtherBadges="OtherBadges" :defaultColors="defaultColors"
-          :SmoothColors="SmoothColors" :border="Border" :shadowText="textShadow"/>
+          :SmoothColors="SmoothColors" :border="Border" :shadowText="textShadow"
+          :padding="padding" :overridedBadges="overridedBadges"/>
         </div>
     </div>
 
@@ -255,7 +256,7 @@
 
       <div class="nsetting">
           <div class="nsetting-name">Font size</div>
-          <input class="nsetting-input" type="number" :value="fontSize" min="4" max="50" v-on:input="onChangeFontSize">
+          <input class="nsetting-input" type="number" :value="fontSize" min="4" max="150" v-on:input="onChangeFontSize">
       </div>
 
       <div class="nsetting">
@@ -264,12 +265,12 @@
       </div>
 
       <div class="nsetting">
-        <div class="nsetting-name">Font name from <a target="_blank" href="https://fonts.google.com/">here</a> <br> <span class="small-desc">(e.g. "Castoro Titling"; CASE SENSIVITY!)</span></div>
+        <div class="nsetting-name">Font name from <a target="_blank" href="https://fonts.google.com/">here</a> <br> <span class="small-desc">(e.g. "Castoro Titling"; CASE SENSITIVE!)</span></div>
         <input class="nsetting-input" onclick="this.select();" type="text" :value="fontName" v-on:change="onChangeFont">
       </div>
 
       <div class="nsetting">
-        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(this woudn't work in this test chat)</span></div>
+        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(doesn't work in the test chat on the left)</span></div>
         <input class="nsetting-input" onclick="this.select();" type="text" :value="deleteAfter" v-on:input="onChangeFade">
       </div>
 
@@ -279,7 +280,17 @@
       </div>
 
       <div class="nsetting">
-        <div class="nsetting-name">Smooth colors <br> <span class="small-desc">(works when background is not transparent only)</span></div>
+        <div class="nsetting-name">Space between messages</div>
+        <input class="nsetting-input" type="checkbox" :value="padding" v-on:input="onChangePadding" checked>
+      </div>
+
+      <div class="nsetting">
+        <div class="nsetting-name">Text shadow</div>
+        <input class="nsetting-input" type="checkbox" v-model="textShadow" true-value="1" false-value="0" :value="textShadow" v-on:input="onChangeShadow">
+      </div>
+
+      <div class="nsetting">
+        <div class="nsetting-name">Smooth colors <br> <span class="small-desc">(works with non-transparent background only)</span></div>
         <input class="nsetting-input" type="checkbox" :value="SmoothColors" v-on:input="onChangeSmooth" checked>
       </div>
 
@@ -333,6 +344,7 @@ export default {
         textShadow: "0",
         deleteAfter: "0",
         fromBottom: "0",
+        padding: "1",
         
         fontName: "Roboto",
 
@@ -357,6 +369,8 @@ export default {
 
         client: null,
         evenapi: null,
+
+        overridedBadges: false,
 
         defaultColors: ["#4242f7", "#ff7f50", "#1e90ff", "#00ff7f", "#9acd32", "#008000", "#ff4500", "#ff0000", "#daa520", "#ff69b4", "#5f9ea0", "#2e8b57", "#d2691e", "#a065d7", "#b22222"],
       }
@@ -419,10 +433,16 @@ export default {
       },
       onChangeFontSize(event) {
         let i = parseInt(event.target.value.trim())
-        if (i > 0 && i <= 50) this.fontSize = event.target.value.trim()
+        if (i > 0 && i <= 150) this.fontSize = event.target.value.trim()
       },
       onChangepEmotes() {
         this.pEmotes = this.pEmotes.trim() == "1" ? "0" : "1"
+      },
+      onChangePadding() {
+        this.padding = this.padding.trim() == "1" ? "0" : "1"
+      },
+      onChangeShadow() {
+        this.textShadow = this.textShadow.trim() == "0" ? "1" : "0"
       },
       onChangeBorder() {
         this.Border = this.Border.trim() == "2" ? "0" : "2"
@@ -529,8 +549,14 @@ export default {
           console.log("loaded 7tv global emotes")
           this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getBttvGlobalEmotes, [], 3))
           console.log("loaded bttv global emotes")
-          this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getFfzEmotes, [this.channel], 3))
+
+          let ffz_data = await apis.RetryOnError(apis.getFfzEmotes, [this.channel], 3) // this contains emotes, mod badge, vip badge
+          this.Emotes = this.Emotes.concat(ffz_data[0])
           console.log("loaded ffz channel emotes")
+
+          if (ffz_data[1] != undefined) {this.GlobalBadges["moderator"]["1"] = ffz_data[1]; this.overridedBadges = true}
+          if (ffz_data[2] != undefined) this.GlobalBadges["vip"]["1"] = ffz_data[2]
+
           this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getFfzGlobalEmotes, [], 3))
           console.log("loaded ffz global emotes")
         } else {
