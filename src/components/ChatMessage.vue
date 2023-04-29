@@ -4,8 +4,7 @@
           <img :provider="badge.provider" :src="badge.Url">
       </div>
       <span>
-        <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() == this.payload.source.nick" class="message-nick" :style="{color: color}">{{ displayName }}: </span>
-        <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() != this.payload.source.nick" class="message-nick" :style="{color: color}">{{this.payload.source.nick}}({{ displayName }}): </span>
+        <span :HavePaints="HavePaints" class="message-nick" :style="{color: color}">{{ nick }}: </span>
         <span class="message-text" :action="this.payload.action" :HavePaints="HavePaints">
           <template v-for="mes in FinalMessage" :key="mes">
             <img v-if="mes.Type=='emote'" :src="mes.Text" :ZeroWidth="mes.ZeroWidth">
@@ -20,6 +19,7 @@
 import Common from '@/utils/common'
 import ColourDistance from '@/utils/colour'
 // import twemoji from 'twemoji'
+
 
 export default {
   name: 'ChatMessage',
@@ -51,7 +51,7 @@ export default {
   },
   props: {
     PersonalEmotes: Array,
-    Emotes: Array,
+    Emotes: Object,
     OtherBadges: Array,
     GlobalBadges: Object,
     Paints: Array,
@@ -103,6 +103,10 @@ export default {
       }
   },
   computed: {
+    nick() {
+      if (this.displayName.toLowerCase() != this.payload.source.nick) return `${this.payload.source.nick} (${this.displayName})`
+      return this.displayName
+    },
     color() {
       let color = this.payload.tags.color
       if (!this.payload.tags.color) {
@@ -149,14 +153,13 @@ export default {
           }
         }
       }
-
-      for (const em of this.Emotes) {
-        for (const i in f_mes) {
-          if (f_mes[i].Text.slice(0, -1) == em.Name) {
-            f_mes[i].Type = "emote"
-            f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
-            f_mes[i].ZeroWidth = em.ZeroWidth
-          }
+      /* eslint-disable no-unused-vars */
+      for (const i in f_mes) {
+        if (this.Emotes[f_mes[i].Text.slice(0, -1)]) {
+          let em = this.Emotes[f_mes[i].Text.slice(0, -1)]
+          f_mes[i].Type = "emote"
+          f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
+          f_mes[i].ZeroWidth = em.ZeroWidth
         }
       }
 

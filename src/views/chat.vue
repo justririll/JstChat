@@ -1,8 +1,11 @@
 <template>
     <div id="chat">
         <transition-group :name="transition_group">
-          <ChatMessage v-for="mes in Messages" :key="mes" :PersonalEmotes="PersonalEmotes[mes.source.nick]" :Emotes="Emotes" :GlobalBadges="GlobalBadges"
-          :Paints="Paints" :OtherBadges="OtherBadges" :defaultColors="defaultColors" :payload="mes" :BG="mes.BG" :overridedBadges="overridedBadges"/>
+          <ChatMessage v-for="mes in Messages" :key="mes.tags.id" :PersonalEmotes="PersonalEmotes[mes.source.nick]"
+          :Emotes="Emotes" :GlobalBadges="GlobalBadges"
+          :Paints="Paints" :OtherBadges="OtherBadges"
+          :defaultColors="defaultColors" :payload="mes"
+          :BG="mes.BG" :overridedBadges="overridedBadges"/>
         </transition-group>
     </div>
 </template>
@@ -38,7 +41,7 @@
         pEmotesEnabled: this.$route.query.pemotes != "0",
         deleteAfter : this.$route.query.deleteafter || "0",
         fontName: this.$route.query.fontname || "roboto",
-        overridedBadges: false,
+        ignoreList: (this.$route.query.ignore || "").toLowerCase().split(" "),
 
         // other:
         PersonalEmotes: {},
@@ -46,30 +49,28 @@
         channel: this.$route.query.channel,
         currBG: true,
         IsDisconnected: false,
-        Emotes: [],
+        Emotes: {},
         GlobalBadges: [],
         OtherBadges: [],
         Paints: [],
         channelID: null,
         client: null,
+        overridedBadges: false,
         Messages: [],
         defaultColors: ["#4242f7", "#ff7f50", "#1e90ff", "#00ff7f", "#9acd32", "#008000", "#ff4500", "#ff0000", "#daa520", "#ff69b4", "#5f9ea0", "#2e8b57", "#d2691e", "#a065d7", "#b22222"],
       }
     },
     methods: {
       onEmoteDelete(e) {
-        this.Emotes = this.Emotes.filter(item => item.ID !== e.old_value.id)
+        delete this.Emotes[e.old_value.id]
       },
       onEmoteAdd(e) {
-        this.Emotes.push({"Name": e.value.name, "ID": e.value.id, "Type": "7TV"})
+        this.Emotes[e.value.name] = {"ID": e.value.id, "Type": "7TV"}
       },
       onEmoteRename(e) {
-        for (let emote of this.Emotes) {
-          if (emote.ID == e.value.id) {
-            emote.Name = e.value.name
-          }
-        }
-        this.Emotes.push({"Name": e.value.name, "ID": e.value.id, "Type": "7TV"})
+        console.log(e)
+        this.Emotes[e.value.name] = this.Emotes[e.old_value.name]
+        delete this.Emotes[e.old_value.name]
       },
       onPersonalEmotes(e, user) {
         if (e != undefined && user != undefined && this.pEmotesEnabled) {
@@ -80,7 +81,7 @@
         let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
         if (stv.length > 0) {
           console.log("loaded seventv channel")
-          this.Emotes = this.Emotes.concat(stv[0])
+          this.Emotes = Object.assign(this.Emotes, stv[0])
 
           // initializing event api
           if (this.useEventAPI) {
@@ -97,7 +98,7 @@
         }
       },
       async getbttvchannel() {
-        this.Emotes = this.Emotes.concat(await await apis.RetryOnError(apis.getBttvEmotes, [this.channelID], 3))
+        this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.getBttvEmotes, [this.channelID], 3))
       },
       async getsubscriberbadges() {
         let subs = await apis.RetryOnError(apis.getSubscriberBadges, [this.channelID], 3)
@@ -144,6 +145,8 @@
 
         this.client.OnUserId = this.onUserID
         this.client.OnPrivateMessage = async (payload) => {
+          if (this.ignoreList.includes(payload.source.nick)) return
+
           payload.BG = this.BG
           if (this.altBG) {
             payload.BG = this.currBG ? this.BG : this.BG2
@@ -187,16 +190,17 @@
           // pass
         }
 
-        this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.get7tvGlobalEmotes, [], 3))
+        this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.get7tvGlobalEmotes, [], 3))
         console.log("loaded 7tv global emotes")
-        this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getBttvGlobalEmotes, [], 3))
+        this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.getBttvGlobalEmotes, [], 3))
         console.log("loaded bttv global emotes")
 
         let ffz_data = await apis.RetryOnError(apis.getFfzEmotes, [this.channel], 3) // this contains emotes, mod badge, vip badge
-        this.Emotes = this.Emotes.concat(ffz_data[0])
+
+        if (ffz_data[0] != undefined) {this.Emotes = Object.assign(this.Emotes, ffz_data[0])}
         console.log("loaded ffz channel emotes")
 
-        this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getFfzGlobalEmotes, [], 3))
+        this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.getFfzGlobalEmotes, [], 3))
         console.log("loaded ffz global emotes")
 
         let gb = await apis.RetryOnError(apis.getGlobalBadges, [], 3)
@@ -204,7 +208,6 @@
           gb["subscriber"] = this.GlobalBadges["subscriber"]
         }
         this.GlobalBadges = gb
-        console.log(ffz_data)
         if (ffz_data[1] != undefined) {this.GlobalBadges["moderator"]["1"] = ffz_data[1]; this.overridedBadges = true}
         if (ffz_data[2] != undefined) this.GlobalBadges["vip"]["1"] = ffz_data[2]
 

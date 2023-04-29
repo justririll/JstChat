@@ -114,50 +114,50 @@ var Huita = {
         return []
     },
     async get7tvEmotes(user_id) {
-        let emotes = []
+        let emotes = {}
 
         const response = await fetch(`https://7tv.io/v3/users/twitch/${user_id}`)
         if (response.ok) {
             const json = await response.json()
             for (const value of json["emote_set"]["emotes"]) {
-                emotes.push({"Name": value.name, "ID": value.id, "Type": "7TV", "ZeroWidth": value.flags == 1})
+                emotes[value.name] = {"ID": value.id, "Type": "7TV", "ZeroWidth": value.flags == 1}
             }
             return [emotes, json["emote_set"]["id"]]
         }
         if (response.status != 404) {
             throw "7tv not loaded"
         }
-        return []
+        return {}
     },
     async get7tvGlobalEmotes() {
-        let emotes = []
+        let emotes = {}
 
         const response = await fetch(`https://7tv.io/v3/emote-sets/62cdd34e72a832540de95857`)
         if (response.ok) {
             const json = await response.json()
             for (const value of json["emotes"]) {
-                emotes.push({"Name": value.name, "ID": value.id, "Type": "7TV", "ZeroWidth": value.flags == 1})
+                emotes[value.name] = {"ID": value.id, "Type": "7TV", "ZeroWidth": value.flags == 1}
             }
             return emotes
         }
         if (response.status != 404) {
             throw "not loaded"
         }
-        return []
+        return {}
     },
     async getBttvEmotes(user_id) {
-        let emotes = []
+        let emotes = {}
         const response = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${user_id}`)
         if (response.ok) {
             const json = await response.json()
             if (json["sharedEmotes"]) {
                 for (const value of json["sharedEmotes"]) {
-                    emotes.push({"Name": value.code, "ID": value.id, "Type": "BTTV"})
+                    emotes[value.code] = {"ID": value.id, "Type": "BTTV"}
                 }
             }
             if (json["channelEmotes"]) {
                 for (const value of json["channelEmotes"]) {
-                    emotes.push({"Name": value.code, "ID": value.id, "Type": "BTTV"})
+                    emotes[value.code] = {"ID": value.id, "Type": "BTTV"}
                 }
             }
             return emotes
@@ -165,32 +165,32 @@ var Huita = {
         if (response.status != 404) {
             throw "not loaded"
         }
-        return []
+        return {}
     },
     async getBttvGlobalEmotes() {
-        let emotes = []
+        let emotes = {}
 
         const response = await fetch(`https://api.betterttv.net/3/cached/emotes/global`)
         if (response.ok) {
             const json = await response.json()
             for (const value of json) {
-                emotes.push({"Name": value.code, "ID": value.id, "Type": "BTTV"})
+                emotes[value.code] = {"ID": value.id, "Type": "BTTV"}
             }
             return emotes
         }
         if (response.status != 404) {
             throw "not loaded"
         }
-        return []
+        return {}
     },
     async getFfzEmotes(channel) { // returns emotes, mod badge, vip badge
-        let emotes = []
+        let emotes = {}
 
         const response = await fetch(`https://api.frankerfacez.com/v1/room/${channel}`)
         if (response.ok) {
             const json = await response.json()
             for (const value of json["sets"][json["room"]["set"].toString()]["emoticons"]) {
-                emotes.push({"Name": value.name, "ID": value.id, "Type": "FFZ"})
+                emotes[value.name] = {"ID": value.id, "Type": "FFZ"}
             }
 
             // getting custom badges:
@@ -209,20 +209,20 @@ var Huita = {
         return []
     },
     async getFfzGlobalEmotes() {
-        let emotes = []
+        let emotes = {}
 
         const response = await fetch(`https://api.frankerfacez.com/v1/set/global`)
         if (response.ok) {
             const json = await response.json()
             for (const value of json["sets"]["3"]["emoticons"]) {
-                emotes.push({"Name": value.name, "ID": value.id, "Type": "FFZ"})
+                emotes[value.name] = {"ID": value.id, "Type": "FFZ"}
             }
             return emotes
         }
         if (response.status != 404) {
             throw "not loaded"
         }
-        return []
+        return {}
     },
     // @todo: ffz badges, bttv badges. Maybe add chatterino badges.
 }

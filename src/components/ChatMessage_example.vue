@@ -4,8 +4,7 @@
         <img :provider="badge.provider" :src="badge.Url">
     </div>
     <span>
-      <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() == this.payload.source.nick" class="message-nick" :style="{color: color}">{{ displayName }}: </span>
-      <span :HavePaints="HavePaints" v-if="displayName.toLowerCase() != this.payload.source.nick" class="message-nick" :style="{color: color}">{{this.payload.source.nick}} ({{ displayName }}): </span>
+      <span :HavePaints="HavePaints" class="message-nick" :style="{color: color}">{{ nick }}: </span>
       <span class="message-text" :action="this.payload.action" :HavePaints="HavePaints">
         <template v-for="mes in FinalMessage" :key="mes">
           <img v-if="mes.Type=='emote'" :src="mes.Text" :ZeroWidth="mes.ZeroWidth">
@@ -44,7 +43,7 @@ data() {
   }
 },
 props: {
-  Emotes: Array,
+  Emotes: Object,
   OtherBadges: Array,
   GlobalBadges: Object,
   Paints: Array,
@@ -96,7 +95,8 @@ created: async function() {
       }
 
       // 7tv paints
-      if (this.paintsEnabled == "1") {
+      try {
+        if (this.paintsEnabled == "1") {
         for (const value of this.Paints) {
           if (value.users.includes(this.payload.tags["user-id"])) {
             this.HavePaints = true
@@ -104,6 +104,9 @@ created: async function() {
             break
           }
         }
+      }
+      } catch (error) {
+        console.log(error)
       }
   },
 computed: {
@@ -140,46 +143,37 @@ computed: {
   FinalMessage() {
     let TempMessage = `${this.payload.parameters}`
 
-    // TempMessage = twemoji.parse(TempMessage)
+      // TempMessage = twemoji.parse(TempMessage)
 
-    let f_mes = Common.textToMessageObject(TempMessage)
+      let f_mes = Common.textToMessageObject(TempMessage)
 
-    if (this.payload.tags.emotes) {
-      let twitchEmotes = Common.parse_smiles(TempMessage, this.payload.tags["emotes"])
-      for (const [em, url] of Object.entries(twitchEmotes)) {
-        for (const i in f_mes) {
-          if (f_mes[i].Text.slice(0, -1) == em) {
-            f_mes[i].Type = "emote"
-            f_mes[i].Text = url
-            f_mes[i].ZeroWidth = false
+      if (this.payload.tags.emotes) {
+        let twitchEmotes = Common.parse_smiles(TempMessage, this.payload.tags["emotes"])
+        for (const [em, url] of Object.entries(twitchEmotes)) {
+          for (const i in f_mes) {
+            if (f_mes[i].Text.slice(0, -1) == em) {
+              f_mes[i].Type = "emote"
+              f_mes[i].Text = url
+              f_mes[i].ZeroWidth = false
+            }
           }
         }
       }
-    }
-
-    for (const em of this.Emotes) {
+      /* eslint-disable no-unused-vars */
       for (const i in f_mes) {
-        if (f_mes[i].Text.slice(0, -1) == em.Name) {
+        if (this.Emotes[f_mes[i].Text.slice(0, -1)]) {
+          let em = this.Emotes[f_mes[i].Text.slice(0, -1)]
           f_mes[i].Type = "emote"
           f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
           f_mes[i].ZeroWidth = em.ZeroWidth
         }
       }
-    }
 
-    if (this.payload.PersonalEmotes !== undefined) {
-      for (const em of this.payload.PersonalEmotes) {
-        for (const i in f_mes) {
-          if (f_mes[i].Text.slice(0, -1) == em.Name) {
-            f_mes[i].Type = "emote"
-            f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
-            f_mes[i].ZeroWidth = em.ZeroWidth
-          }
-        }
-      }
-    }
-
-    return f_mes
+      return f_mes
+  },
+  nick() {
+    if (this.displayName.toLowerCase() != this.payload.source.nick) return `${this.payload.source.nick} (${this.displayName})`
+    return this.displayName
   },
   bgImage() {
     if (!this.Paint || this.paintsEnabled == "0") {

@@ -184,15 +184,15 @@
     border-bottom: 2px solid black;
   }
   .nsetting-name {
-    margin-top: 1%;
-    margin-left: 6%;
+    margin-top: 1vh;
+    margin-left: 2vw;
     display: inline-block;
     font-size: 2vh;
     width: 40%;
   }
   .nsetting-input {
-    margin-top: 2%;
-    margin-right: 3%;
+    margin-top: 1vh;
+    margin-right: 1vw;
     float: right;
   }
 
@@ -208,6 +208,10 @@
     margin-top: 6vh;
     text-align: center;
   }
+
+  #ignore-list {
+    max-width: 15vw;
+  }
 </style>
 
 <template>
@@ -215,7 +219,7 @@
 
     <div style="background-color: rgb(64 64 64);" class="chat" ref="chat">
         <div class="chat-box">
-          <ChatMessage class="mes" v-for="mes in Messages" :key="mes"
+          <ChatMessage class="mes" v-for="mes in Messages" :key="mes.tags.id"
           :Emotes="Emotes" :Paints="Paints" :GlobalBadges="GlobalBadges"
           :payload="mes" :BG="BG" :BG2="BG2" :paintsEnabled="paintsEnabled" 
           :font_size="fontSize" :interpolateSize="interpolateSize"
@@ -265,12 +269,17 @@
       </div>
 
       <div class="nsetting">
+          <div class="nsetting-name">Ignore list<br> <span class="small-desc">(separate nicks by space; will not affect chat on the left)</span></div>
+          <input id="ignore-list" class="nsetting-input" type="text" :value="ignoreList" v-on:input="onChangeIgnore">
+      </div>
+
+      <div class="nsetting">
         <div class="nsetting-name">Font name from <a target="_blank" href="https://fonts.google.com/">here</a> <br> <span class="small-desc">(e.g. "Castoro Titling"; CASE SENSITIVE!)</span></div>
         <input class="nsetting-input" onclick="this.select();" type="text" :value="fontName" v-on:change="onChangeFont">
       </div>
 
       <div class="nsetting">
-        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(doesn't work in the test chat on the left)</span></div>
+        <div class="nsetting-name">Fade after (0 = disable) <br> <span class="small-desc">(will not affect chat on the left)</span></div>
         <input class="nsetting-input" onclick="this.select();" type="text" :value="deleteAfter" v-on:input="onChangeFade">
       </div>
 
@@ -345,6 +354,8 @@ export default {
         deleteAfter: "0",
         fromBottom: "0",
         padding: "1",
+
+        ignoreList: "",
         
         fontName: "Roboto",
 
@@ -356,8 +367,8 @@ export default {
 
         GlobalBadges: [],
         OtherBadges: [],
-        Messages: [],
-        Emotes: [],
+        Messages: {},
+        Emotes: {},
         Badges: {},
         Paints: [],
 
@@ -431,6 +442,9 @@ export default {
       onChangeChannel(event) {
         this.selectedChannel = event.target.value.trim().toLowerCase()
       },
+      onChangeIgnore(event) {
+        this.ignoreList = event.target.value
+      },
       onChangeFontSize(event) {
         let i = parseInt(event.target.value.trim())
         if (i > 0 && i <= 150) this.fontSize = event.target.value.trim()
@@ -503,7 +517,7 @@ export default {
       },
 
       async create_client() {
-        this.Emotes = []
+        this.Emotes = {}
         this.Messages = []
         this.Badges = []
 
@@ -545,22 +559,22 @@ export default {
 
         if (this.channel != "") {
           this.client.connect()
-          this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.get7tvGlobalEmotes, [], 3))
+          this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.get7tvGlobalEmotes, [], 3))
           console.log("loaded 7tv global emotes")
-          this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getBttvGlobalEmotes, [], 3))
+          this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.getBttvGlobalEmotes, [], 3))
           console.log("loaded bttv global emotes")
 
           let ffz_data = await apis.RetryOnError(apis.getFfzEmotes, [this.channel], 3) // this contains emotes, mod badge, vip badge
-          this.Emotes = this.Emotes.concat(ffz_data[0])
+          this.Emotes = Object.assign(this.Emotes, ffz_data[0])
           console.log("loaded ffz channel emotes")
 
           if (ffz_data[1] != undefined) {this.GlobalBadges["moderator"]["1"] = ffz_data[1]; this.overridedBadges = true}
           if (ffz_data[2] != undefined) this.GlobalBadges["vip"]["1"] = ffz_data[2]
 
-          this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.getFfzGlobalEmotes, [], 3))
+          this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.getFfzGlobalEmotes, [], 3))
           console.log("loaded ffz global emotes")
         } else {
-          this.Emotes = this.Emotes.concat(await apis.RetryOnError(apis.get7tvGlobalEmotes, [], 3))
+          this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.get7tvGlobalEmotes, [], 3))
           this.Messages.push({"tags":{"badge-info":null,"badges":{"game-developer":"1"},"color":"#FFFFFF","display-name":"rj_st","emotes":null,"first-msg":"0","id":"4e9b10fb-7e80-46b5-9652-efc894188334","mod":"0","returning-chatter":"0","room-id":"22484632","subscriber":"0","tmi-sent-ts":"1680165804876","turbo":"0","user-id":"407046453","user-type":null},"source":{"nick":"rj_st","host":"rj_st@rj_st.tmi.twitch.tv"},"command":{"command":"PRIVMSG","channel":"#forsen"},"parameters":"ApuApustaja TeaTime","BG":"0"})
           this.Messages.push({"tags":{"badge-info":null,"badges":{"game-developer":"1"},"color":"#FFFFFF","display-name":"rj_st","emotes":null,"first-msg":"0","id":"4e9b10fb-7e80-46b5-9652-efc894188334","mod":"0","returning-chatter":"0","room-id":"22484632","subscriber":"0","tmi-sent-ts":"1680165804876","turbo":"0","user-id":"407046453","user-type":null},"source":{"nick":"rj_st","host":"rj_st@rj_st.tmi.twitch.tv"},"command":{"command":"PRIVMSG","channel":"#forsen"},"parameters":"ApuApustaja TeaTime","BG":"1"})
           // this.Messages.push({"tags":{"badge-info":{"subscriber":"33"},"badges":{"vip":"1","subscriber":"24"},"color":"#66CDAA","display-name":"Aroldas1","emotes":null,"first-msg":"0","id":"a6e4ccf3-98fe-437a-9318-d87b3591f8a5","mod":"0","returning-chatter":"0","room-id":"48189727","subscriber":"1","tmi-sent-ts":"1680348603142","turbo":"0","user-id":"69078167","user-type":null,"vip":"1"},"source":{"nick":"aroldas1","host":"aroldas1@aroldas1.tmi.twitch.tv"},"command":{"command":"PRIVMSG","channel":"#t2x2"},"parameters":"ApuApustaja TeaTime","BG":"0"})
@@ -570,7 +584,7 @@ export default {
         let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
         if (stv.length > 0) {
           console.log("loaded seventv channel")
-          this.Emotes = this.Emotes.concat(stv[0])
+          this.Emotes = Object.assign(this.Emotes, stv[0])
 
           // initializing event api
           // if (this.useEventAPI) {
@@ -587,7 +601,7 @@ export default {
         }
       },
       async getbttvchannel() {
-        this.Emotes = this.Emotes.concat(await await apis.RetryOnError(apis.getBttvEmotes, [this.channelID], 3))
+        this.Emotes = Object.assign(this.Emotes, await apis.RetryOnError(apis.getBttvEmotes, [this.channelID], 3))
       },
       async getsubscriberbadges() {
         let subs = await apis.RetryOnError(apis.getSubscriberBadges, [this.channelID], 3)
@@ -622,7 +636,7 @@ export default {
           if (this.textShadow != "0") additional_query += `&shadowtext=1`
           if (this.fontName != "Roboto") additional_query += `&fontname=${this.fontName}`
           if (this.deleteAfter != "0") additional_query += `&deleteafter=${this.deleteAfter}`
-          if (this.fromBottom != "1") additional_query += `&bottom=0`
+          if (this.ignoreList != "") additional_query += `&ignore=${this.ignoreList.trim()}`
 
           return `${location.toString()}chat?channel=${this.selectedChannel}${additional_query}`
         }

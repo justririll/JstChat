@@ -10,6 +10,7 @@
   "dependencies": {
     "@vueuse/head": "^1.1.26",
     "core-js": "^3.8.3",
+    "sanitize-html": "^2.10.0",
     "twemoji": "^14.0.2",
     "vue": "^3.2.13",
     "vue-router": "^4.1.6"
@@ -21,7 +22,8 @@
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3"
+    "eslint-plugin-vue": "^8.0.3",
+    "fuite": "^2.0.0"
   },
   "eslintConfig": {
     "root": true,
