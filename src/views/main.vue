@@ -637,6 +637,7 @@ export default {
           if (this.fontName != "Roboto") additional_query += `&fontname=${this.fontName}`
           if (this.deleteAfter != "0") additional_query += `&deleteafter=${this.deleteAfter}`
           if (this.ignoreList != "") additional_query += `&ignore=${this.ignoreList.trim()}`
+          if (this.padding != "") additional_query += `&padding=${this.padding.trim()}`
 
           return `${location.toString()}chat?channel=${this.selectedChannel}${additional_query}`
         }
