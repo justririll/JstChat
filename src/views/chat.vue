@@ -5,7 +5,7 @@
           :Emotes="Emotes" :GlobalBadges="GlobalBadges"
           :Paints="Paints" :OtherBadges="OtherBadges"
           :defaultColors="defaultColors" :payload="mes"
-          :BG="mes.BG" :overridedBadges="overridedBadges"/>
+          :BG="mes.BG" :overridedBadges="overridedBadges" v-emoji/>
         </transition-group>
     </div>
 </template>

@@ -5,11 +5,8 @@
       </div>
       <span>
         <span :HavePaints="HavePaints" class="message-nick" :style="{color: color}">{{ nick }}: </span>
-        <span class="message-text" :action="this.payload.action" :HavePaints="HavePaints">
-          <template v-for="mes in FinalMessage" :key="mes">
-            <img v-if="mes.Type=='emote'" :src="mes.Text" :ZeroWidth="mes.ZeroWidth">
-            <template v-if="mes.Type=='text'">{{mes.Text}}</template>
-          </template>  
+        <span class="message-text" :action="this.payload.action" :HavePaints="HavePaints" v-emotes="Emotes" v-twitch-emotes="TwitchEmotes" v-personal-emotes="PersonalEmotes">
+          {{ this.payload.parameters }}
         </span>
       </span>
     </div>
@@ -134,48 +131,11 @@ export default {
       }
       return color
     },
-    FinalMessage() {
-      let TempMessage = `${this.payload.parameters}`
-
-      // TempMessage = twemoji.parse(TempMessage)
-
-      let f_mes = Common.textToMessageObject(TempMessage)
-
+    TwitchEmotes() {
       if (this.payload.tags.emotes) {
-        let twitchEmotes = Common.parse_smiles(TempMessage, this.payload.tags["emotes"])
-        for (const [em, url] of Object.entries(twitchEmotes)) {
-          for (const i in f_mes) {
-            if (f_mes[i].Text.slice(0, -1) == em) {
-              f_mes[i].Type = "emote"
-              f_mes[i].Text = url
-              f_mes[i].ZeroWidth = false
-            }
-          }
-        }
+        return Common.parse_smiles(this.payload.parameters, this.payload.tags["emotes"])
       }
-      /* eslint-disable no-unused-vars */
-      for (const i in f_mes) {
-        if (this.Emotes[f_mes[i].Text.slice(0, -1)]) {
-          let em = this.Emotes[f_mes[i].Text.slice(0, -1)]
-          f_mes[i].Type = "emote"
-          f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
-          f_mes[i].ZeroWidth = em.ZeroWidth
-        }
-      }
-
-      if (this.PersonalEmotes !== undefined) {
-        for (const em of this.PersonalEmotes) {
-          for (const i in f_mes) {
-            if (f_mes[i].Text.slice(0, -1) == em.Name) {
-              f_mes[i].Type = "emote"
-              f_mes[i].Text = this.EmotesBaseUrl[em.Type].replace('{0}', em.ID)
-              f_mes[i].ZeroWidth = em.ZeroWidth
-            }
-          }
-        }
-      }
-
-      return f_mes
+      return {}
     },
     bgImage() {
       if (!this.Paint) {

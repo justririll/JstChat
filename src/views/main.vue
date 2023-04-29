@@ -225,7 +225,7 @@
           :font_size="fontSize" :interpolateSize="interpolateSize"
           :OtherBadges="OtherBadges" :defaultColors="defaultColors"
           :SmoothColors="SmoothColors" :border="Border" :shadowText="textShadow"
-          :padding="padding" :overridedBadges="overridedBadges"/>
+          :padding="padding" :overridedBadges="overridedBadges" v-emoji/>
         </div>
     </div>
 

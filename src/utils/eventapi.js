@@ -66,7 +66,7 @@ class EventAPI {
 
     async onMessage(e) {
         let json = JSON.parse(e.data)
-        console.log(json)
+        // console.log(json)
         switch (json.op) {
             case 4000, 4001, 4002, 4003, 4004, 4005, 4006, 4007, 4008, 4009, 4010, 4011: {
                 console.log(json)
