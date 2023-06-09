@@ -35,4 +35,5 @@ app.directive('personal-emotes', {
     }
 })
 
+
 app.use(router).mount('#app')

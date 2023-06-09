@@ -160,12 +160,9 @@
           this.Messages.push(payload)
 
           if (this.deleteAfter != "0") {
-            setTimeout(() => {
-                let index = this.Messages.indexOf(payload)
-                if (index > -1) {
-                  this.Messages.splice(index, 1);
-                }
-            }, parseInt(this.deleteAfter)*1000);
+            setTimeout((id) => {
+              this.Messages = this.Messages.filter(item => item.tags["id"] !== id)
+            }, parseInt(this.deleteAfter)*1000, payload.tags.id.slice());
           }
           if (this.Messages.length > 50) {
             this.Messages.shift()
