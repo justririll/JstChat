@@ -287,6 +287,12 @@ export default {
     color: v-bind('color')
   }
 
+  .message-text img[ZeroWidth="true"] {
+    position: absolute;
+		z-index: 1;
+		transform: translateX(-100%);
+  }
+
   .message-text[action="true"][HavePaints="true"] {
     filter: v-bind('filter');
     color: v-bind('paintColor');

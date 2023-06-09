@@ -11,7 +11,7 @@ export default {
         for (const t of html.split(" ")) {
             if (emotes[t]) {
                 let em = emotes[t]
-                res = res.replace(` ${t} `, ` <img src="${EmotesBaseUrl[em.Type].replace('{0}', em.ID)}"> `)
+                res = res.replace(` ${t} `, ` <img src="${EmotesBaseUrl[em.Type].replace('{0}', em.ID)}" ZeroWidth="${em.ZeroWidth}"> `)
             }
         }
         return res.trim()
@@ -32,7 +32,7 @@ export default {
             for (const em of emotes) {
                 /* eslint-disable no-unused-vars */
                 for (const t of html.split(" ")) {
-                    res = res.replace(` ${em.Name} `, ` <img src="${EmotesBaseUrl[em.Type].replace('{0}', em.ID)}"> `)
+                    res = res.replace(` ${em.Name} `, ` <img src="${EmotesBaseUrl[em.Type].replace('{0}', em.ID)}" ZeroWidth="${em.ZeroWidth}"> `)
                 }
             }
         }
