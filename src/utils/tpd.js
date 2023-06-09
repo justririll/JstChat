@@ -56,17 +56,17 @@ var Huita = {
     async getGlobalBadges() {
         let badges = {}
 
-        const response = await fetch("https://badges.twitch.tv/v1/badges/global/display?language=en")
+        const response = await fetch("https://api.ivr.fi/v2/twitch/badges/global")
         if (response.ok) {
                 const json = await response.json()
-            for (const [key, value] of Object.entries(json["badge_sets"])) {
+            for (const value of json) {
                 let vers = value["versions"]
                 let finalVersions = {}
-                for (const [key, value] of Object.entries(vers)) {
-                    finalVersions[key] = value["image_url_2x"]
+                for (const value of vers) {
+                    finalVersions[value["id"]] = value["image_url_2x"]
                 }
-                badges[key] = finalVersions
-                }
+                badges[value["set_id"]] = finalVersions
+            }
             return badges
         }
         if (response.status != 404) {
@@ -77,18 +77,18 @@ var Huita = {
     async getSubscriberBadges(user_id) {
         let subscriber = {}
 
-        const response = await fetch(`https://badges.twitch.tv/v1/badges/channels/${user_id}/display`)
+        const response = await fetch(`https://api.ivr.fi/v2/twitch/badges/channel?id=${user_id}`)
         const json = await response.json()
-        if (response.ok && Object.keys(json.badge_sets).length > 0) {
-            let vers = json["badge_sets"]["subscriber"]["versions"]
+        if (response.ok && json.length > 0 && json[0]["set_id"] == "subscriber") {
+            let vers = json[0]["versions"]
             let finalVersions = {}
-            for (const [key, value] of Object.entries(vers)) {
-                finalVersions[key] = value["image_url_2x"]
+            for (const value of vers) {
+                finalVersions[value["id"]] = value["image_url_2x"]
             }
             subscriber = finalVersions
             return subscriber
         }
-        if (response.status != 404 && Object.keys(json.badge_sets).length > 0) {
+        if (response.status != 404 && json.length > 0) {
             throw "not loaded"
         }
         return {}
