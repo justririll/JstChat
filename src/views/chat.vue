@@ -112,7 +112,6 @@
           if (this.channelID == null) {
             this.channelID = id
 
-            // a
             await this.getbttvchannel()
             await this.get7tvchannel()
             await this.getsubscriberbadges()
