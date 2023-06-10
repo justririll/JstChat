@@ -11,9 +11,17 @@ class EventAPI {
         this.ws = null
         this.set_id = set_id
         this.user_id = user_id //user_id
+
         this.onDelete = undefined
         this.onAdd = undefined
         this.onRename = undefined
+
+        this.onBadgeCreate = undefined
+        this.onBadgeDelete = undefined
+        this.onPaintCreate = undefined
+        this.onPaintDelete = undefined
+
+        this.pending = {}
 
         this.onPersonalEmotes = undefined
 
@@ -64,6 +72,15 @@ class EventAPI {
         this.ws.send(JSON.stringify(message))
     }
 
+    getTwitchConnection(connections) {
+        for (const con of connections) {
+            if (con.platform == "TWITCH") {
+                return con
+            }
+        }
+        return undefined
+    }
+
     async onMessage(e) {
         let json = JSON.parse(e.data)
         // console.log(json)
@@ -95,6 +112,8 @@ class EventAPI {
             case 0:
                 switch (json.d.type) {
                     case "emote_set.update": {
+                        // if (json.d.body.contextual) return
+
                         if (json.d.body.pulled) {
                             for (const item of json.d.body.pulled) {
                                 this.onDelete(item)
@@ -122,6 +141,61 @@ class EventAPI {
 
                         this.onPersonalEmotes(...await apis.get7tvEmoteSet(set_id))
 
+                        break
+                    }
+                    
+                    // paints & badges auto update
+                    case "cosmetic.create": {
+                        switch (json.d.body.object.kind) {
+                            case "PAINT": {
+                                this.pending[json.d.body.object.id] =json.d.body.object
+                                break;
+                            }
+                            case "BADGE": {
+                                this.pending[json.d.body.object.id] = json.d.body.object
+                                break;
+                            }
+                        }
+                        break
+                    }
+
+                    case "entitlement.create": {
+                        let p = this.pending[json.d.body.object.ref_id]
+
+                        if (p == undefined) break
+
+                        switch (p.kind) {
+                            case "PAINT": {
+                                p.user = this.getTwitchConnection(json.d.body.object.user.connections)
+                                this.onPaintCreate(p)
+                                break
+                            }
+                            case "BADGE": {
+                                p.user = this.getTwitchConnection(json.d.body.object.user.connections)
+                                this.onBadgeCreate(p)
+                                break
+                            }
+                        }
+                        break
+                    }
+                    case "entitlement.delete": {
+                        let p = this.pending[json.d.body.object.ref_id]
+
+                        if (p == undefined) break
+
+                        switch (p.kind) {
+                            case "PAINT": {
+                                p.user = this.getTwitchConnection(json.d.body.object.user.connections)
+                                this.onPaintDelete(p)
+                                break
+                            }
+                            case "BADGE": {
+                                p.user = this.getTwitchConnection(json.d.body.object.user.connections)
+                                this.onBadgeDelete(p)
+                                break
+                            }
+                        }
+                        // delete this.pending[json.d.body.object.ref_id]
                         break
                     }
                 }

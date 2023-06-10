@@ -61,8 +61,50 @@
       }
     },
     methods: {
+      onPaintCreate(e) {
+        for (const i in this.Paints) {
+          if (this.Paints[i] != undefined && this.Paints[i].name == e.data.name) {
+            this.Paints[i].users.push(e.user.id)
+            return
+          }
+        }
+        let pos = this.Paints.push(e.data)-1
+        this.Paints[pos].users = [e.user.id]
+      },
+      onPaintDelete(e) {
+        for (const i in this.Paints) {
+          if (this.Paints[i].id == e.data.id) {
+            this.Paints[i].users = this.Paints[i].users.filter(function(item) {
+                return item !== e.user.id
+            })
+            break
+          }
+        }
+      },
+
+      onBadgeCreate(e) {
+        for (const i in this.OtherBadges) {
+          if (this.OtherBadges[i] != undefined && this.OtherBadges[i].id == e.data.id) {
+            this.OtherBadges[i].Users.push(e.user.id)
+            return
+          }
+        }
+        let pos = this.OtherBadges.push({"Url": `https:${e.data.host.url}/2x`, "id": e.data.id})-1
+        this.OtherBadges[pos].Users = [e.user.id] 
+      },
+      onBadgeDelete(e) {
+        for (const i in this.OtherBadges) {
+          if (this.OtherBadges[i].id == e.data.id) {
+            this.OtherBadges[i].Users = this.OtherBadges[i].Users.filter(function(item) {
+                return item !== e.user.id
+            })
+            break
+          }
+        }
+      },
+
       onEmoteDelete(e) {
-        delete this.Emotes[e.old_value.id]
+        delete this.Emotes[e.old_value.name]
       },
       onEmoteAdd(e) {
         this.Emotes[e.value.name] = {"ID": e.value.id, "Type": "7TV"}
@@ -72,11 +114,13 @@
         this.Emotes[e.value.name] = this.Emotes[e.old_value.name]
         delete this.Emotes[e.old_value.name]
       },
+
       onPersonalEmotes(e, user) {
         if (e != undefined && user != undefined && this.pEmotesEnabled) {
           this.PersonalEmotes[user] = e
         }
       },
+
       async get7tvchannel() {
         let stv = await apis.RetryOnError(apis.get7tvEmotes, [this.channelID], 3)
         if (stv.length > 0) {
@@ -90,6 +134,11 @@
             this.EventApi.onDelete = this.onEmoteDelete
             this.EventApi.onAdd = this.onEmoteAdd
             this.EventApi.onRename = this.onEmoteRename
+
+            this.EventApi.onBadgeCreate = this.onBadgeCreate
+            this.EventApi.onBadgeDelete = this.onBadgeDelete
+            this.EventApi.onPaintCreate = this.onPaintCreate
+            this.EventApi.onPaintDelete = this.onPaintDelete
 
             this.EventApi.onPersonalEmotes = this.onPersonalEmotes
 
@@ -207,13 +256,13 @@
         if (ffz_data[1] != undefined) {this.GlobalBadges["moderator"]["1"] = ffz_data[1]; this.overridedBadges = true}
         if (ffz_data[2] != undefined) this.GlobalBadges["vip"]["1"] = ffz_data[2]
 
-        let bp = await apis.RetryOnError(apis.get7tvBadgesPaints, [], 3)
-        this.OtherBadges = bp[0]
+        // let bp = await apis.RetryOnError(apis.get7tvBadgesPaints, [], 3)
+        this.OtherBadges = []
         this.OtherBadges.unshift({"Users": ["407046453"], "Url": "https://i.imgur.com/qgO1Y7A.png"}) // custom badges )))
         this.OtherBadges.unshift({"Users": ["521810742"], "Url": "https://cdn.7tv.app/emote/63d6ed00349f81ba10452fdd/2x.webp"})
         this.OtherBadges.unshift({"Users": ["69078167"], "Url": "https://i.imgur.com/nIm3MvW.gif"})
         this.OtherBadges.unshift({"Users": ["489131898"], "Url": "https://i.imgur.com/Kg7X4ga.gif"})
-        this.Paints = bp[1]
+        this.Paints = []
     },
     computed: {
       transition_group() {

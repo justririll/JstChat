@@ -79,20 +79,45 @@ var Huita = {
 
         const response = await fetch(`https://api.ivr.fi/v2/twitch/badges/channel?id=${user_id}`)
         const json = await response.json()
-        if (response.ok && json.length > 0 && json[0]["set_id"] == "subscriber") {
-            let vers = json[0]["versions"]
-            let finalVersions = {}
-            for (const value of vers) {
-                finalVersions[value["id"]] = value["image_url_2x"]
+        if (response.ok && json.length > 0) {
+            for (const obj of json) {
+                if (obj["set_id"] == "subscriber") {
+                    let vers = obj["versions"]
+                    let finalVersions = {}
+                    for (const value of vers) {
+                        finalVersions[value["id"]] = value["image_url_2x"]
+                    }
+                    subscriber = finalVersions
+                    return subscriber
+                }
             }
-            subscriber = finalVersions
-            return subscriber
         }
         if (response.status != 404 && json.length > 0) {
             throw "not loaded"
         }
         return {}
     },
+    // async getUserBy7tvId(id) {
+    //     const resp = await fetch("https://7tv.io/v3/gql", {
+    //         method: 'POST',
+    //         headers: {
+    //           'Accept': 'application/json',
+    //           'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({
+    //             "operationName": "GetUserForUserPage",
+    //             "variables": {
+    //               "id": id
+    //             },
+    //             "query": "query GetUserForUserPage($id: ObjectID!) {\n  user(id: $id) {\n    id\n    username\n    display_name\n    created_at\n    avatar_url\n    style {\n      color\n      paint_id\n      __typename\n    }\n    biography\n    editors {\n      id\n      permissions\n      visible\n      user {\n        id\n        username\n        display_name\n        avatar_url\n        style {\n          color\n          paint_id\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    emote_sets {\n      id\n      name\n      capacity\n      owner {\n        id\n        __typename\n      }\n      __typename\n    }\n    roles\n    connections {\n      id\n      username\n      display_name\n      platform\n      linked_at\n      emote_capacity\n      emote_set_id\n      __typename\n    }\n    __typename\n  }\n}"
+    //           })
+    //       })
+    //     const json = await resp.json()
+    //     if (json.data.user != null) {
+    //         return json.data.user
+    //     }
+    //     return undefined 
+    // },
     async get7tvBadgesPaints() {
             let badges = []
             let paints = []

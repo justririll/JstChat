@@ -1,25 +1,34 @@
 <template>
     <div class="ChatMessage">
-      <div v-for="badge in Badges" :key="badge" class="Badge">
-          <img :provider="badge.provider" :src="badge.Url">
-      </div>
+      <Badges :Badges="this.Badges"/>
       <span>
-        <span :HavePaints="HavePaints" class="message-nick" :style="{color: color}">{{ nick }}: </span>
-        <span class="message-text" :action="this.payload.action" :HavePaints="HavePaints" v-emotes="Emotes" v-twitch-emotes="TwitchEmotes" v-personal-emotes="PersonalEmotes">
-          {{ this.payload.parameters }}
-        </span>
+        <Nick :Tags="this.payload.tags" :color="color" :Login="this.payload.source.nick"
+         :HavePaints="this.Paint != null" :id="payload.tags.id" />
+
+        <Message :HavePaints="(this.Paint != null).toString()" :Emotes="Emotes" :twEmotes="TwitchEmotes" :pEmotes="PersonalEmotes"
+         :Parameters="payload.parameters" :Action="payload.action" :color="this.color" :id="payload.tags.id" />
       </span>
     </div>
 </template>
 
 <script>
-import Common from '@/utils/common'
 import ColourDistance from '@/utils/colour'
+import Common from '@/utils/common'
+
+import Message from '@/components/message/Message.vue'
+import Nick from '@/components/message/Nick.vue'
+import Badges from '@/components/message/Badges.vue'
+
 // import twemoji from 'twemoji'
 
 
 export default {
   name: 'ChatMessage',
+  components: {
+    Message,
+    Nick,
+    Badges
+  },
   data() {
     return {
       EmotesBaseUrl: {
@@ -28,13 +37,13 @@ export default {
         "FFZ": "https://cdn.frankerfacez.com/emote/{0}/2",
         "TWITCH": ""
       },
-      Paint: null,
+      // Paint: null,
       HavePaints: false,
       displayName: "",
 
-      dot : 0,
-
       Badges: [],
+
+      dot : 0,
 
       smoothColors: this.$route.query.smoothcolor || "1",
 
@@ -64,46 +73,26 @@ export default {
       if (this.payload.command.command != "PRIVMSG") {
           return {}
       }
-      this.displayName = this.payload.tags["display-name"]
-      if (this.payload.tags["display-name"] == undefined) {
-        this.displayName = this.payload.user
-      }
-
-      // twitch badges
       if (this.payload.tags.badges) {
         for (const [key, value] of Object.entries(this.payload.tags["badges"])) {
           if (this.GlobalBadges[key]) {
             let provider = "Twitch"
             if (this.overridedBadges && key == "moderator") provider = "ffz-mod-badge"
-            this.Badges.push({"Url": this.GlobalBadges[key][value], "provider": provider})
+            if (this.GlobalBadges[key][value] != undefined) {
+              this.Badges.push({"Url": this.GlobalBadges[key][value], "provider": provider})
+            }
           }
         }
       }
-      // parse extension badges
       if (this.OtherBadges) {
         for (const value of this.OtherBadges) {
           if (value.Users.includes(this.payload.tags["user-id"])) {
-            this.Badges.push({"Url": value.Url, "provider": value.Type})
-          }
-        }
-      }
-
-      // 7tv paints
-      if (this.paintsEnabled == "1") {
-        for (const value of this.Paints) {
-          if (value.users.includes(this.payload.tags["user-id"])) {
-            this.HavePaints = true
-            this.Paint = value
-            break
+            this.Badges.push({"Url": value.Url, provider: "none"})
           }
         }
       }
   },
   computed: {
-    nick() {
-      if (this.displayName.toLowerCase() != this.payload.source.nick) return `${this.payload.source.nick} (${this.displayName})`
-      return this.displayName
-    },
     color() {
       let color = this.payload.tags.color
       if (!this.payload.tags.color) {
@@ -131,6 +120,16 @@ export default {
       }
       return color
     },
+    Paint() {
+      if (this.paintsEnabled == "1") {
+        for (const value of this.Paints) {
+          if (value.users.includes(this.payload.tags["user-id"])) {
+            return value
+          }
+        }
+      }
+      return null
+    },
     TwitchEmotes() {
       if (this.payload.tags.emotes) {
         return Common.parse_smiles(this.payload.parameters, this.payload.tags["emotes"])
@@ -141,17 +140,20 @@ export default {
       if (!this.Paint) {
         return ""
       }
-      const ccsFunc = this.Paint.function
+      let cssFunc = ""
 
       const args = []
       switch (this.Paint.function) {
-          case "linear-gradient":
+          case "LINEAR_GRADIENT":
+              cssFunc = "linear-gradient"
               args.push(`${this.Paint.angle}deg`)
               break;
-          case "radial-graient":
+          case "RADIAL_GRADIENT":
+              cssFunc = "radial-gradient"
               args.push(this.Paint.shape ?? "circle")
               break
-          case "url":
+          case "URL":
+              cssFunc = "url-gradient"
               args.push(this.Paint.image_url ?? "")
               break
       }
@@ -163,7 +165,7 @@ export default {
           const color = Common.DecimalToStringRGBA(stop.color)
           args.push(`${color} ${stop.at * 100}%`)
       }
-      return `${funcPrefix}${ccsFunc}(${args.join(", ")})`
+      return `${funcPrefix}${cssFunc}(${args.join(", ")})`
     },
     filterText() {
       if (this.shadowText == "1") {
@@ -173,7 +175,7 @@ export default {
     },
     filter() {
       try {
-        return this.Paint.drop_shadows
+        return this.Paint.shadows
         .map((v) => `drop-shadow(${v.x_offset}px ${v.y_offset}px ${v.radius}px ${Common.DecimalToStringRGBA(v.color)})`)
         .join(" ");
       } catch (error) {
@@ -191,12 +193,6 @@ export default {
         return Math.round(0.8 * parseInt(this.font_size) + 4.4).toString() + "px"
       }
       return "18px"
-    },
-    emoteSize() {
-      if (this.interpolateSize && parseInt(this.font_size)) {
-        return (parseInt(this.font_size) + 14).toString() + "px"
-      }
-      return "32px"
     },
     messageSize() {
       if (this.interpolateSize && parseInt(this.font_size)) {
@@ -216,6 +212,8 @@ export default {
       }
       return "0px"
     }
+  },
+  methods: {
   }
 }
 </script>
@@ -251,17 +249,14 @@ export default {
     color: white;
     border-top: v-bind(Border);
   }
-  .message-text {
-    bottom: 5px;
-    margin-right: 13px;
-    filter: v-bind('filterText');
-  }
-
-  .message-text img, .emoji {
-    height: v-bind(emoteSize);
-    vertical-align: middle;
-    filter: unset;
-    padding-right: 8px;
+  .message-text[action="true"][HavePaints="true"] {
+    filter: v-bind('filter');
+    color: v-bind('paintColor');
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text !important;
+    background-color: currentcolor;
+    background-image: v-bind('bgImage');
   }
   .message-nick {
     font-weight: 700;
@@ -271,31 +266,6 @@ export default {
     color: v-bind('paintColor');
   }
   .message-nick[HavePaints="true"] {
-    -webkit-text-fill-color: transparent;
-    -webkit-background-clip: text;
-    background-clip: text !important;
-    background-color: currentcolor;
-    background-image: v-bind('bgImage');
-  }
-  .message-text img[ZeroWidth="true"] {
-    position: absolute;
-		z-index: 1;
-		transform: translateX(-100%);
-  }
-
-  .message-text[action="true"][HavePaints="false"] {
-    color: v-bind('color')
-  }
-
-  .message-text img[ZeroWidth="true"] {
-    position: absolute;
-		z-index: 1;
-		transform: translateX(-100%);
-  }
-
-  .message-text[action="true"][HavePaints="true"] {
-    filter: v-bind('filter');
-    color: v-bind('paintColor');
     -webkit-text-fill-color: transparent;
     -webkit-background-clip: text;
     background-clip: text !important;
