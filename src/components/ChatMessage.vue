@@ -153,7 +153,7 @@ export default {
               args.push(this.Paint.shape ?? "circle")
               break
           case "URL":
-              cssFunc = "url-gradient"
+              cssFunc = "url"
               args.push(this.Paint.image_url ?? "")
               break
       }
