@@ -36,6 +36,7 @@ var Huita = {
                 return await func(...args)
             } catch (error) {
                 console.log("Attemption failed, retrying in 1s")
+                console.log(`Error: ${error}`)
                 await this.wait(1000)
                 continue
             }
