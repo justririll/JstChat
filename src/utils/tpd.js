@@ -158,7 +158,7 @@ var Huita = {
     async get7tvGlobalEmotes() {
         let emotes = {}
 
-        const response = await fetch(`https://7tv.io/v3/emote-sets/62cdd34e72a832540de95857`)
+        const response = await fetch(`https://7tv.io/v3/emote-sets/01GG8F04Y000089195YKEP5CA3`)
         if (response.ok) {
             const json = await response.json()
             for (const value of json["emotes"]) {
