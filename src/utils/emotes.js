@@ -3,6 +3,7 @@ var EmotesBaseUrl = {
     "7TV": "https://cdn.7tv.app/emote/{0}/2x.webp",
     "BTTV": "https://cdn.betterttv.net/emote/{0}/2x",
     "FFZ": "https://cdn.frankerfacez.com/emote/{0}/2",
+    "FFZ_ANIMATED": "https://cdn.frankerfacez.com/emote/{0}/animated/2",
 }
 
 export default {
