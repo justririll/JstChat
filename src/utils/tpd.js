@@ -216,7 +216,8 @@ var Huita = {
         if (response.ok) {
             const json = await response.json()
             for (const value of json["sets"][json["room"]["set"].toString()]["emoticons"]) {
-                emotes[value.name] = {"ID": value.id, "Type": "FFZ"}
+                const type = value.animated === undefined ? "FFZ" : "FFZ_ANIMATED"
+                emotes[value.name] = {"ID": value.id, "Type": type}
             }
 
             // getting custom badges:
@@ -241,7 +242,8 @@ var Huita = {
         if (response.ok) {
             const json = await response.json()
             for (const value of json["sets"]["3"]["emoticons"]) {
-                emotes[value.name] = {"ID": value.id, "Type": "FFZ"}
+                const type = value.animated === undefined ? "FFZ" : "FFZ_ANIMATED"
+                emotes[value.name] = {"ID": value.id, "Type": type}
             }
             return emotes
         }
